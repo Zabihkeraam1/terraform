@@ -69,21 +69,7 @@ user_data = <<-EOF
             chmod +x ~/.docker/cli-plugins/docker-buildx
             sudo systemctl start nginx
             sudo systemctl enable nginx
-            # Create the Nginx configuration file
-            cat <<EOL > /tmp/test.conf
-            server {
-                listen 80;
 
-                server_name ${aws_instance.web_server.public_ip};
-                location / {
-                    proxy_pass http://localhost:5173;
-                    proxy_set_header Host \$host;
-                    proxy_set_header X-Real-IP \$remote_addr;
-                    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto \$scheme;
-                }
-            }
-            EOL
             # Copy the Nginx configuration file
             sudo cp /tmp/test.conf /etc/nginx/conf.d/test.conf
 
@@ -98,6 +84,25 @@ user_data = <<-EOF
             ./config.sh --url https://github.com/Zabihkeraam1/terraform --token BHOW73FPT3AQQIHB7KXUUVDH2AO7E
             ./run.sh
             EOF
+}
+
+# Generate the Nginx configuration file
+resource "local_file" "nginx_config" {
+  content = <<-EOL
+            server {
+                listen 80;
+
+                server_name ${aws_instance.web_server.public_ip};
+                location / {
+                    proxy_pass http://localhost:5173;
+                    proxy_set_header Host \$host;
+                    proxy_set_header X-Real-IP \$remote_addr;
+                    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto \$scheme;
+                }
+            }
+            EOL
+  filename = "${path.module}/test.conf"
 }
 
 # Output the public IP of the EC2 instance
