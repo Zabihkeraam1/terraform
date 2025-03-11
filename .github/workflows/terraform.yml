@@ -50,7 +50,7 @@ jobs:
 
       # Make the public IP available to other workflows
       - name: Upload Public IP as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: public-ip
           path: ${{ env.PUBLIC_IP }}
