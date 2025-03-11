@@ -13,13 +13,18 @@ data "aws_security_group" "existing_sg" {
   name = "web-server-sg"
 }
 
-# Delete the existing security group if it exists
 resource "null_resource" "delete_existing_sg" {
   triggers = {
     sg_id = data.aws_security_group.existing_sg.id
   }
 
   provisioner "local-exec" {
+    environment = {
+      AWS_ACCESS_KEY_ID     = var.AWS_ACCESS_KEY_ID
+      AWS_SECRET_ACCESS_KEY = var.AWS_SECRET_ACCESS_KEY
+      AWS_DEFAULT_REGION    = "eu-north-1"
+    }
+
     command = <<-EOT
       aws ec2 delete-security-group --group-id ${data.aws_security_group.existing_sg.id} --region eu-north-1
     EOT
