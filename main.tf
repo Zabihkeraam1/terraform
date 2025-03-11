@@ -8,9 +8,26 @@ provider "aws" {
 data "aws_vpc" "default" {
   default = true
 }
+# Query the existing security group
+data "aws_security_group" "existing_sg" {
+  name = "web-server-sg"
+}
 
+# Delete the existing security group if it exists
+resource "null_resource" "delete_existing_sg" {
+  triggers = {
+    sg_id = data.aws_security_group.existing_sg.id
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      aws ec2 delete-security-group --group-id ${data.aws_security_group.existing_sg.id}
+    EOT
+  }
+}
 # Create a security group for the EC2 instance
 resource "aws_security_group" "web_server_sg" {
+  depends_on = [null_resource.delete_existing_sg]
   name        = "web-server-sg"
   description = "Allow HTTP, HTTPS, and SSH traffic"
   vpc_id      = data.aws_vpc.default.id
