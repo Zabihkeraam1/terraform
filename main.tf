@@ -20,25 +20,7 @@ data "aws_instances" "instances_using_sg" {
     values = [data.aws_security_group.existing_sg.id]
   }
 }
-# Detach security group from instances before deleting
-resource "null_resource" "detach_sg" {
-  count = length(data.aws_instances.instances_using_sg.ids)
 
-  provisioner "local-exec" {
-    environment = {
-      AWS_ACCESS_KEY_ID     = var.AWS_ACCESS_KEY_ID
-      AWS_SECRET_ACCESS_KEY = var.AWS_SECRET_ACCESS_KEY
-      AWS_DEFAULT_REGION    = "eu-north-1"
-    }
-
-    command = <<EOT
-      aws ec2 modify-instance-attribute \
-        --instance-id ${element(data.aws_instances.instances_using_sg.ids, count.index)} \
-        --groups sg-NEW_GROUP_ID \
-        --region eu-north-1
-    EOT
-  }
-}
 resource "null_resource" "delete_existing_sg" {
   triggers = {
     sg_id = data.aws_security_group.existing_sg.id
