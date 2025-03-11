@@ -13,7 +13,39 @@ data "aws_security_group" "existing_sg" {
   name = "web-server-sg"
 }
 
+# Remove the security group from all resources
+resource "null_resource" "remove_sg_dependencies" {
+  triggers = {
+    sg_id = data.aws_security_group.existing_sg.id
+  }
+
+  provisioner "local-exec" {
+    environment = {
+      AWS_ACCESS_KEY_ID     = var.AWS_ACCESS_KEY_ID
+      AWS_SECRET_ACCESS_KEY = var.AWS_SECRET_ACCESS_KEY
+      AWS_DEFAULT_REGION    = "eu-north-1"
+    }
+
+    command = <<-EOT
+      # Remove the security group from all EC2 instances
+      INSTANCE_IDS=$(aws ec2 describe-instances --filters Name=instance.group-id,Values=${data.aws_security_group.existing_sg.id} --query "Reservations[*].Instances[*].InstanceId" --output text)
+      for INSTANCE_ID in $INSTANCE_IDS; do
+        aws ec2 modify-instance-attribute --instance-id $INSTANCE_ID --groups ${aws_security_group.web_server_sg.id}
+      done
+
+      # Remove the security group from all network interfaces
+      INTERFACE_IDS=$(aws ec2 describe-network-interfaces --filters Name=group-id,Values=${data.aws_security_group.existing_sg.id} --query "NetworkInterfaces[*].NetworkInterfaceId" --output text)
+      for INTERFACE_ID in $INTERFACE_IDS; do
+        aws ec2 modify-network-interface-attribute --network-interface-id $INTERFACE_ID --groups ${aws_security_group.web_server_sg.id}
+      done
+    EOT
+  }
+}
+
+# Delete the existing security group
 resource "null_resource" "delete_existing_sg" {
+  depends_on = [null_resource.remove_sg_dependencies]
+
   triggers = {
     sg_id = data.aws_security_group.existing_sg.id
   }
