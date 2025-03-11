@@ -21,7 +21,7 @@ resource "null_resource" "delete_existing_sg" {
 
   provisioner "local-exec" {
     command = <<-EOT
-      aws ec2 delete-security-group --group-id ${data.aws_security_group.existing_sg.id}
+      aws ec2 delete-security-group --group-id ${data.aws_security_group.existing_sg.id} --region eu-north-1
     EOT
   }
 }
