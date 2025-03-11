@@ -119,7 +119,7 @@ user_data = <<-EOF
             sudo systemctl enable nginx
 
             # Copy the Nginx configuration file
-            sudo cp /tmp/test.conf /etc/nginx/conf.d/test.conf
+            sudo cp /devops/test.conf /etc/nginx/conf.d/test.conf
 
             # Test the Nginx configuration and reload Nginx
             sudo nginx -t
