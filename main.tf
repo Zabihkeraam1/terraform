@@ -4,8 +4,15 @@ provider "aws" {
   secret_key = var.AWS_SECRET_ACCESS_KEY
 }
 
-# Create a security group for the EC2 instance
+# Query the existing security group
+data "aws_security_group" "existing_sg" {
+  name = "web-server-sg"
+}
+
+# Create a new security group only if it doesn't exist
 resource "aws_security_group" "web_server_sg" {
+  count = length(data.aws_security_group.existing_sg) > 0 ? 0 : 1
+
   name        = "web-server-sg"
   description = "Allow HTTP, HTTPS, and SSH traffic"
 
@@ -38,46 +45,51 @@ resource "aws_security_group" "web_server_sg" {
   }
 }
 
+# Use the existing or newly created security group
+locals {
+  security_group_id = length(data.aws_security_group.existing_sg) > 0 ? data.aws_security_group.existing_sg.id : aws_security_group.web_server_sg[0].id
+}
+
 # Create an EC2 instance
 resource "aws_instance" "web_server" {
   ami             = "ami-02e2af61198e99faf" # Replace with your desired AMI ID
   instance_type   = "t3.micro"
-  security_groups = [aws_security_group.web_server_sg.name]
+  security_groups = [local.security_group_id]
 
   tags = {
     Name = "web-server"
   }
 
   # Install Docker, Nginx, and GitHub Actions runner on the instance
-user_data = <<-EOF
-            #!/bin/bash
-            sudo apt update
-            sudo apt install -y docker.io nginx
-            sudo systemctl start docker
-            sudo systemctl enable docker
-            sudo usermod -aG docker $USER
-            newgrp docker
-            sudo systemctl restart docker
-            mkdir -p ~/.docker/cli-plugins
-            curl -sSL https://github.com/docker/buildx/releases/download/v0.10.0/buildx-v0.10.0.linux-amd64 -o ~/.docker/cli-plugins/docker-buildx
-            chmod +x ~/.docker/cli-plugins/docker-buildx
-            sudo systemctl start nginx
-            sudo systemctl enable nginx
+  user_data = <<-EOF
+              #!/bin/bash
+              sudo apt update
+              sudo apt install -y docker.io nginx
+              sudo systemctl start docker
+              sudo systemctl enable docker
+              sudo usermod -aG docker $USER
+              newgrp docker
+              sudo systemctl restart docker
+              mkdir -p ~/.docker/cli-plugins
+              curl -sSL https://github.com/docker/buildx/releases/download/v0.10.0/buildx-v0.10.0.linux-amd64 -o ~/.docker/cli-plugins/docker-buildx
+              chmod +x ~/.docker/cli-plugins/docker-buildx
+              sudo systemctl start nginx
+              sudo systemctl enable nginx
 
-            # Copy the Nginx configuration file
-            sudo cp /tmp/test.conf /etc/nginx/conf.d/test.conf
+              # Copy the Nginx configuration file
+              sudo cp /tmp/test.conf /etc/nginx/conf.d/test.conf
 
-            # Test the Nginx configuration and reload Nginx
-            sudo nginx -t
-            sudo systemctl reload nginx
+              # Test the Nginx configuration and reload Nginx
+              sudo nginx -t
+              sudo systemctl reload nginx
 
-            # Install GitHub Actions runner
-            mkdir actions-runner && cd actions-runner
-            curl -o actions-runner-linux-x64-2.309.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.309.0/actions-runner-linux-x64-2.309.0.tar.gz
-            tar xzf ./actions-runner-linux-x64-2.309.0.tar.gz
-            ./config.sh --url https://github.com/Zabihkeraam1/terraform --token BHOW73FPT3AQQIHB7KXUUVDH2AO7E
-            ./run.sh
-            EOF
+              # Install GitHub Actions runner
+              mkdir actions-runner && cd actions-runner
+              curl -o actions-runner-linux-x64-2.309.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.309.0/actions-runner-linux-x64-2.309.0.tar.gz
+              tar xzf ./actions-runner-linux-x64-2.309.0.tar.gz
+              ./config.sh --url https://github.com/Zabihkeraam1/terraform --token BHOW73FPT3AQQIHB7KXUUVDH2AO7E
+              ./run.sh
+              EOF
 }
 
 # Generate the Nginx configuration file
