@@ -1,16 +1,18 @@
-name: CI/CD
+name: Docker Build and Deploy Terraform
 
+# on:
+#   push:
+#     branches:
+#       - master
 on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
+  workflow_run:
+    workflows: ["Terraform Plan and Apply"]
+    types:
+      - completed
 
 jobs:
   build-and-deploy:
-    runs-on: self-hosted  # Ensure Docker is installed on the self-hosted runner
+    runs-on: self-hosted
 
     steps:
       # Check out the repository
@@ -26,29 +28,28 @@ jobs:
 
       # Build the Docker image
       - name: Build Docker image
-        run: docker build -t zabihkeraam/docker-test:latest .
+        run: |
+          docker buildx build --build-arg CONFIG=preprod --no-cache -t bitlinksai/terraform:preprod .
+        env:
+          DOCKER_BUILDKIT: 1
 
       # Stop and remove the previous container (if running)
       - name: Stop and remove previous container
         run: |
-          docker stop my-container || true
-          docker rm my-container || true
+          docker stop terraform || true
+          docker rm terraform || true
 
       # Push the Docker image to Docker Hub
       - name: Push Docker image
-        run: docker push zabihkeraam/docker-test:latest
+        run: |
+          docker push bitlinksai/terraform:preprod
 
       # Run the Docker container
       - name: Run Docker container
         run: |
-          docker run -d --name my-container -p 80:80 zabihkeraam/docker-test:latest
+          docker run -d --name terraform -p 5173:5173 --restart always bitlinksai/terraform:preprod
 
-      # Verify the container is running
-      - name: Verify container
-        run: docker ps
-
-      # Additional steps (optional)
-      - name: Run a multi-line script
+      # Clean up untagged (dangling) images
+      - name: Clean up untagged images
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          docker image prune -a -f

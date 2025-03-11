@@ -6,10 +6,9 @@ function App() {
 
   return (
     <>
-      
-      <h1>Hello DovOps</h1>
-      <button>Click me</button>
-      <button>Click</button>
+      <div> 
+      <h1>Hello Terraform</h1>
+      </div>
 
     </>
   )
