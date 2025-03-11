@@ -4,67 +4,22 @@ provider "aws" {
   secret_key = var.AWS_SECRET_ACCESS_KEY
 }
 
-# Query the existing security group
-data "aws_security_group" "existing_sg" {
-  name = "web-server-sg"
+# Query the default security group
+data "aws_security_group" "default" {
+  name   = "default"
+  vpc_id = data.aws_vpc.default.id
 }
 
-# Create a new security group only if it doesn't exist
-resource "aws_security_group" "web_server_sg" {
-  count = length(data.aws_security_group.existing_sg) > 0 ? 0 : 1
-
-  name        = "web-server-sg"
-  description = "Allow HTTP, HTTPS, and SSH traffic"
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+# Query the default VPC
+data "aws_vpc" "default" {
+  default = true
 }
 
-# Use the existing or newly created security group
-# locals {
-#   security_group_id = length(data.aws_security_group.existing_sg) > 0 ? data.aws_security_group.existing_sg.id : aws_security_group.web_server_sg[0].id
-# }
-# locals {
-#   security_group_id = length(data.aws_security_group.existing_sg.id) > 0 ? data.aws_security_group.existing_sg.id : aws_security_group.web_server_sg[0].id
-# }
-
-locals {
-  security_group_id = data.aws_security_group.existing_sg.id
-
-}
-
-
-# Create an EC2 instance
+# Create an EC2 instance and attach the default security group
 resource "aws_instance" "web_server" {
   ami             = "ami-02e2af61198e99faf" # Replace with your desired AMI ID
   instance_type   = "t3.micro"
-#   security_groups = [local.security_group_id]
-vpc_security_group_ids = [local.security_group_id]
+  vpc_security_group_ids = [data.aws_security_group.default.id]
 
   tags = {
     Name = "web-server"
