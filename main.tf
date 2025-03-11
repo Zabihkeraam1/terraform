@@ -46,15 +46,20 @@ resource "aws_security_group" "web_server_sg" {
 }
 
 # Use the existing or newly created security group
+# locals {
+#   security_group_id = length(data.aws_security_group.existing_sg) > 0 ? data.aws_security_group.existing_sg.id : aws_security_group.web_server_sg[0].id
+# }
 locals {
-  security_group_id = length(data.aws_security_group.existing_sg) > 0 ? data.aws_security_group.existing_sg.id : aws_security_group.web_server_sg[0].id
+  security_group_id = length(data.aws_security_group.existing_sg) > 0 ? data.aws_security_group.existing_sg[0].id : aws_security_group.web_server_sg[0].id
 }
+
 
 # Create an EC2 instance
 resource "aws_instance" "web_server" {
   ami             = "ami-02e2af61198e99faf" # Replace with your desired AMI ID
   instance_type   = "t3.micro"
-  security_groups = [local.security_group_id]
+#   security_groups = [local.security_group_id]
+vpc_security_group_ids = [local.security_group_id]
 
   tags = {
     Name = "web-server"
