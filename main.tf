@@ -13,6 +13,23 @@ data "aws_security_group" "existing_sg" {
   name = "web-server-sg"
 }
 
+# Query instances using the security group
+data "aws_instances" "instances_using_sg" {
+  filter {
+    name   = "instance.group-id"
+    values = [data.aws_security_group.existing_sg.id]
+  }
+}
+# Detach security group from instances before deleting
+resource "null_resource" "detach_sg" {
+  count = length(data.aws_instances.instances_using_sg.ids)
+
+  provisioner "local-exec" {
+    command = <<EOT
+      aws ec2 modify-instance-attribute --instance-id ${element(data.aws_instances.instances_using_sg.ids, count.index)} --groups sg-NEW_GROUP_ID
+    EOT
+  }
+}
 resource "null_resource" "delete_existing_sg" {
   triggers = {
     sg_id = data.aws_security_group.existing_sg.id
