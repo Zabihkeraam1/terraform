@@ -1,4 +1,3 @@
-# user_data.tpl
 #!/bin/bash
 sudo apt update
 sudo apt install -y docker.io nginx
@@ -12,6 +11,9 @@ curl -sSL https://github.com/docker/buildx/releases/download/v0.10.0/buildx-v0.1
 chmod +x ~/.docker/cli-plugins/docker-buildx
 sudo systemctl start nginx
 sudo systemctl enable nginx
+
+# Ensure the Nginx conf.d directory exists
+sudo mkdir -p /etc/nginx/conf.d
 
 # Create the Nginx configuration file
 sudo tee /etc/nginx/conf.d/test.conf > /dev/null <<EOL
