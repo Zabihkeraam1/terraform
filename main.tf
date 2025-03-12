@@ -94,7 +94,6 @@ resource "aws_instance" "web_server" {
   # Render the user_data script using the templatefile function
   user_data = templatefile("user_data.tpl", {
     public_ip = aws_eip.web_server_eip.public_ip
-    RUNNER_VERSION = "2.309.0"
   })
 }
 

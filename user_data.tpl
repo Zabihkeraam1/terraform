@@ -55,7 +55,6 @@ sudo systemctl reload nginx || { echo "Failed to reload Nginx"; exit 1; }
 mkdir -p ~/actions-runner && cd ~/actions-runner || { echo "Failed to create actions-runner directory"; exit 1; }
 
 # Download GitHub Actions runner
-RUNNER_VERSION="2.309.0"
 curl -o actions-runner-linux-x64.tar.gz -L https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz || { echo "Failed to download GitHub Actions runner"; exit 1; }
 tar xzf ./actions-runner-linux-x64.tar.gz || { echo "Failed to extract GitHub Actions runner"; exit 1; }
 
