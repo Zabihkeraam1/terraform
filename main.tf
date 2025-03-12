@@ -73,7 +73,9 @@ resource "aws_security_group" "web_server_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-
+resource "aws_eip" "web_server_eip" {
+  instance = aws_instance.web_server.id
+}
 # Create an EC2 instance
 resource "aws_instance" "web_server" {
   ami             = "ami-02e2af61198e99faf"
@@ -86,10 +88,10 @@ resource "aws_instance" "web_server" {
 
   # Render the user_data script using the templatefile function
   user_data = templatefile("user_data.tpl", {
-    public_ip = aws_instance.web_server.public_ip
+    public_ip = aws_eip.web_server_eip.public_ip
   })
 
-  depends_on = [aws_security_group.web_server_sg]
+  depends_on = [aws_eip.web_server_eip]
 }
 
 
