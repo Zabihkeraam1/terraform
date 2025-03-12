@@ -33,7 +33,6 @@ jobs:
         env:
           DOCKER_BUILDKIT: 1
 
-      # Stop and remove the previous container (if running)
       - name: Stop and remove previous container
         run: |
           docker stop terraform || true
