@@ -41,7 +41,7 @@ sudo chown -R ubuntu:ubuntu /home/ubuntu/actions-runner
 curl -o actions-runner-linux-x64-2.309.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.309.0/actions-runner-linux-x64-2.309.0.tar.gz || { echo "Failed to download GitHub Actions runner"; exit 1; }
 tar xzf ./actions-runner-linux-x64-2.309.0.tar.gz || { echo "Failed to extract GitHub Actions runner"; exit 1; }
 ./config.sh --url https://github.com/Zabihkeraam1/terraform \
---token BHOW73E3SC7NEMTUP5APIDTH2G3TW \
+--token BHOW73ACYA6PNGRVN7NIWPLH2HA2Y \
 --unattended \
 --replace \
 --name my-runner \
