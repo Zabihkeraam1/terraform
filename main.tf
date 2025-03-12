@@ -107,7 +107,7 @@ user_data = <<-EOF
               server {
                   listen 80;
 
-                  server_name ${self.public_ip};
+                  server_name ${public_ip};
                   location / {
                       proxy_pass http://localhost:5173;
                       proxy_set_header Host \$host;
