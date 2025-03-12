@@ -49,23 +49,3 @@ jobs:
         env:
           TF_VAR_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           TF_VAR_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      # Get Public IP
-      - name: Get Public IP
-        id: get-ip
-        run: |
-          PUBLIC_IP=$(terraform output -raw public_ip | tr -d '\r' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
-          echo "Public IP: $PUBLIC_IP"
-          echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
-
-      # Print Public IP
-      - name: Print Public IP
-        run: |
-          echo "The public IP is: $PUBLIC_IP"
-
-      # Upload Public IP as Artifact
-      - name: Upload Public IP as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: public-ip
-          path: ${{ env.PUBLIC_IP }}

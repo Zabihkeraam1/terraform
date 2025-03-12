@@ -7,7 +7,7 @@ sudo usermod -aG docker $USER
 newgrp docker
 sudo systemctl restart docker
 mkdir -p ~/.docker/cli-plugins
-curl -sSL https://github.com/docker/buildx/releases/download/v0.10.0/buildx-v0.10.0.linux-amd64 -o ~/.docker/cli-plugins/docker-buildx
+curl -sSL https://github.com/docker/buildx/releases/download/v0.10.0/buildx-v0.10.0.linux-amd64 -o ~/.docker/cli-plugins/docker-buildx || { echo "Failed to download Docker Buildx"; exit 1; }
 chmod +x ~/.docker/cli-plugins/docker-buildx
 sudo systemctl start nginx
 sudo systemctl enable nginx
@@ -32,12 +32,12 @@ server {
 EOL
 
 # Test the Nginx configuration and reload Nginx
-sudo nginx -t
-sudo systemctl reload nginx
+sudo nginx -t || { echo "Nginx configuration test failed"; exit 1; }
+sudo systemctl reload nginx || { echo "Failed to reload Nginx"; exit 1; }
 
 # Install GitHub Actions runner
-mkdir actions-runner && cd actions-runner
-curl -o actions-runner-linux-x64-2.309.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.309.0/actions-runner-linux-x64-2.309.0.tar.gz
-tar xzf ./actions-runner-linux-x64-2.309.0.tar.gz
-./config.sh --url https://github.com/Zabihkeraam1/terraform --token BHOW73FPT3AQQIHB7KXUUVDH2AO7E
-./run.sh
+mkdir -p actions-runner && cd actions-runner || { echo "Failed to create actions-runner directory"; exit 1; }
+curl -o actions-runner-linux-x64-2.309.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.309.0/actions-runner-linux-x64-2.309.0.tar.gz || { echo "Failed to download GitHub Actions runner"; exit 1; }
+tar xzf ./actions-runner-linux-x64-2.309.0.tar.gz || { echo "Failed to extract GitHub Actions runner"; exit 1; }
+./config.sh --url https://github.com/Zabihkeraam1/terraform --token BHOW73FPT3AQQIHB7KXUUVDH2AO7E || { echo "Failed to configure GitHub Actions runner"; exit 1; }
+./run.sh || { echo "Failed to start GitHub Actions runner"; exit 1; }
