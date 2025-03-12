@@ -74,7 +74,7 @@ resource "aws_security_group" "web_server_sg" {
   }
 }
 resource "aws_eip" "web_server_eip" {
-  vpc = true
+  domain = "vpc"
 }
 
 resource "aws_eip_association" "web_server_eip_assoc" {
