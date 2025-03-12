@@ -26,6 +26,14 @@ jobs:
         id: init
         run: terraform init
 
+      # Destroy existing resources (if any)
+      - name: Terraform Destroy (if needed)
+        id: destroy
+        run: terraform destroy -auto-approve
+        env:
+          TF_VAR_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          TF_VAR_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
       # Run Terraform Plan
       - name: Terraform Plan
         id: plan
@@ -43,10 +51,6 @@ jobs:
           TF_VAR_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       # Get Public IP
-    #   - name: Get Public IP
-    #     id: get-ip
-    #     run: |
-    #       echo "Public IP: $(terraform output -raw public_ip)"
       - name: Get Public IP
         id: get-ip
         run: |
@@ -54,19 +58,12 @@ jobs:
           echo "Public IP: $PUBLIC_IP"
           echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
 
-      # Save Public IP as an environment variable
-      - name: Save Public IP
-        id: save-ip
-        run: |
-          PUBLIC_IP=$(terraform output -raw public_ip)
-          echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
-        
-      # Use the Public IP in subsequent steps
+      # Print Public IP
       - name: Print Public IP
         run: |
           echo "The public IP is: $PUBLIC_IP"
 
-      # Make the public IP available to other workflows
+      # Upload Public IP as Artifact
       - name: Upload Public IP as Artifact
         uses: actions/upload-artifact@v4
         with:
