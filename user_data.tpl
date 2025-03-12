@@ -37,6 +37,7 @@ sudo systemctl reload nginx || { echo "Failed to reload Nginx"; exit 1; }
 
 # Install GitHub Actions runner
 mkdir -p /home/ubuntu/actions-runner && cd /home/ubuntu/actions-runner || { echo "Failed to create actions-runner directory"; exit 1; }
+sudo chown -R ubuntu:ubuntu /home/ubuntu/actions-runner
 curl -o actions-runner-linux-x64-2.309.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.309.0/actions-runner-linux-x64-2.309.0.tar.gz || { echo "Failed to download GitHub Actions runner"; exit 1; }
 tar xzf ./actions-runner-linux-x64-2.309.0.tar.gz || { echo "Failed to extract GitHub Actions runner"; exit 1; }
 ./config.sh --url https://github.com/Zabihkeraam1/terraform --token BHOW73FPT3AQQIHB7KXUUVDH2AO7E || { echo "Failed to configure GitHub Actions runner"; exit 1; }
