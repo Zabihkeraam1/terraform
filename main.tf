@@ -74,7 +74,12 @@ resource "aws_security_group" "web_server_sg" {
   }
 }
 resource "aws_eip" "web_server_eip" {
-  instance = aws_instance.web_server.id
+  vpc = true
+}
+
+resource "aws_eip_association" "web_server_eip_assoc" {
+  instance_id   = aws_instance.web_server.id
+  allocation_id = aws_eip.web_server_eip.id
 }
 # Create an EC2 instance
 resource "aws_instance" "web_server" {
@@ -90,8 +95,6 @@ resource "aws_instance" "web_server" {
   user_data = templatefile("user_data.tpl", {
     public_ip = aws_eip.web_server_eip.public_ip
   })
-
-  depends_on = [aws_eip.web_server_eip]
 }
 
 
