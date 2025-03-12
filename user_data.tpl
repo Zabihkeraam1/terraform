@@ -3,7 +3,7 @@ sudo apt update
 sudo apt install -y docker.io nginx
 sudo systemctl start docker
 sudo systemctl enable docker
-sudo usermod -aG docker $USER
+sudo usermod -aG docker ubuntu
 newgrp docker
 sudo systemctl restart docker
 mkdir -p ~/.docker/cli-plugins
