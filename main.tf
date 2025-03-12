@@ -76,7 +76,7 @@ resource "aws_security_group" "web_server_sg" {
 
 # Create an EC2 instance
 resource "aws_instance" "web_server" {
-  ami             = "ami-02e2af61198e99faf" # Replace with your desired AMI ID
+  ami             = "ami-02e2af61198e99faf"
   instance_type   = "t3.micro"
   security_groups = [aws_security_group.web_server_sg.name]
 
@@ -84,7 +84,7 @@ resource "aws_instance" "web_server" {
     Name = "web-server"
   }
 
-  # Install Docker, Nginx, and GitHub Actions runner on the instance
+# Install Docker, Nginx, and GitHub Actions runner on the instance
 user_data = <<-EOF
             #!/bin/bash
             sudo apt update
@@ -132,7 +132,8 @@ resource "local_file" "nginx_config" {
                 }
             }
             EOL
-  filename = "${path.module}/test.conf"
+  # filename = "${path.module}/test.conf"
+  filename = "/devops/test.conf"
 }
 
 # Output the public IP of the EC2 instance
