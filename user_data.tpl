@@ -53,9 +53,10 @@ tar xzf ./actions-runner-linux-x64-2.309.0.tar.gz || { echo "Failed to extract G
 
 # Fix permissions
 sudo chown -R ubuntu:ubuntu /home/ubuntu/actions-runner
-
+sleep 10
 # Configure the runner automatically
-./config.sh --url https://github.com/Zabihkeraam1/terraform --token BHOW73AF4GV7UNNC53NVI4DH2LLEE --unattended
+./config.sh --url https://github.com/Zabihkeraam1/terraform --token BHOW73DIAEH2NKAF76OF2KDH2LRDA --unattended
+sleep 10
 
 # Start the runner
 ./run.sh || { echo "Failed to start GitHub Actions runner"; exit 1; }
