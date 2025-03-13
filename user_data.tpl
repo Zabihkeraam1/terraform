@@ -39,7 +39,7 @@ sudo systemctl reload nginx || { echo "Failed to reload Nginx"; exit 1; }
 mkdir -p /home/ubuntu/actions-runner && cd /home/ubuntu/actions-runner || { echo "Failed to create actions-runner directory"; exit 1; }
 curl -o actions-runner-linux-x64-2.309.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.309.0/actions-runner-linux-x64-2.309.0.tar.gz || { echo "Failed to download GitHub Actions runner"; exit 1; }
 tar xzf ./actions-runner-linux-x64-2.309.0.tar.gz || { echo "Failed to extract GitHub Actions runner"; exit 1; }
-./config.sh --url https://github.com/Zabihkeraam1/terraform --token BHOW73DNGRUSDPQXUATJ3GTH2LAZO --unattended --replace --name my-runner --labels self-hosted,linux || { echo "Failed to configure GitHub Actions runner"; exit 1; }
+./config.sh --url https://github.com/Zabihkeraam1/terraform --token BHOW73DNGRUSDPQXUATJ3GTH2LAZO --replace --name my-runner --labels self-hosted,linux || { echo "Failed to configure GitHub Actions runner"; exit 1; }
 ./run.sh || { echo "Failed to start GitHub Actions runner"; exit 1; }
 
 # Debugging: Print success message
