@@ -90,19 +90,6 @@ resource "aws_instance" "web_server" {
   tags = {
     Name = "web-server"
   }
-  # Upload the setup-runner.sh script to the instance
-  provisioner "file" {
-    source      = "./setup-runner.sh"
-    destination = "/home/ubuntu/setup-runner.sh"
-  }
-
-  # Execute the script on the instance
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x /home/ubuntu/setup-runner.sh",
-      "/home/ubuntu/setup-runner.sh"
-    ]
-  }
 
   # Render the user_data script using the templatefile function
   user_data = templatefile("user_data.tpl", {
