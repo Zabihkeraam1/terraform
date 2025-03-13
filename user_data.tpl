@@ -59,7 +59,7 @@ cd /home/ubuntu/actions-runner
 sudo chmod +x /home/ubuntu/actions-runner/config.sh
 rm -f .runner .credentials
 # Configure the runner automatically
-./config.sh --url https://github.com/Zabihkeraam1/terraform --token BHOW73EWLO2G43YAS6LIHLLH2LSZO --unattended
+sudo -u ubuntu ./config.sh --url https://github.com/Zabihkeraam1/terraform --token BHOW73EWLO2G43YAS6LIHLLH2LSZO --unattended
 sleep 10
 
 # Start the runner
