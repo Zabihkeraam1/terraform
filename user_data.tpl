@@ -40,6 +40,8 @@ mkdir -p /home/ubuntu/actions-runner && cd /home/ubuntu/actions-runner || { echo
 curl -o actions-runner-linux-x64-2.309.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.309.0/actions-runner-linux-x64-2.309.0.tar.gz || { echo "Failed to download GitHub Actions runner"; exit 1; }
 tar xzf ./actions-runner-linux-x64-2.309.0.tar.gz || { echo "Failed to extract GitHub Actions runner"; exit 1; }
 ./config.sh --url https://github.com/Zabihkeraam1/terraform --token BHOW73DNGRUSDPQXUATJ3GTH2LAZO --replace --name my-runner --labels self-hosted,linux || { echo "Failed to configure GitHub Actions runner"; exit 1; }
+sudo chown -R ubuntu:ubuntu /home/ubuntu/actions-runner
+./config.sh --url https://github.com/Zabihkeraam1/terraform --token BHOW73DNGRUSDPQXUATJ3GTH2LAZO --unattended --name my-runner --labels self-hosted,linux --work _work || { echo "Failed to configure GitHub Actions runner"; exit 1; }
 ./run.sh || { echo "Failed to start GitHub Actions runner"; exit 1; }
 
 # Debugging: Print success message
