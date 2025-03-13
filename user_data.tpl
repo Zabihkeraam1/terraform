@@ -7,6 +7,7 @@ sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -aG docker $USER
 newgrp docker
+sleep 10
 sudo systemctl restart docker
 
 # Install Docker Buildx
@@ -14,7 +15,7 @@ mkdir -p ~/.docker/cli-plugins
 curl -sSL https://github.com/docker/buildx/releases/download/v0.10.0/buildx-v0.10.0.linux-amd64 -o ~/.docker/cli-plugins/docker-buildx
 
 # Make Docker Buildx executable
-chmod +x ~/.docker/cli-plugins/docker-buildx
+sudo chmod +x ~/.docker/cli-plugins/docker-buildx
 
 # Start and enable Nginx
 sudo systemctl start nginx
@@ -54,8 +55,10 @@ tar xzf ./actions-runner-linux-x64-2.309.0.tar.gz || { echo "Failed to extract G
 # Fix permissions
 sudo chown -R ubuntu:ubuntu /home/ubuntu/actions-runner
 sleep 10
+cd /home/ubuntu/actions-runner
+chmod +x /home/ubuntu/actions-runner/config.sh
 # Configure the runner automatically
-./config.sh --url https://github.com/Zabihkeraam1/terraform --token BHOW73DIAEH2NKAF76OF2KDH2LRDA --unattended
+./config.sh --url https://github.com/Zabihkeraam1/terraform --token BHOW73EWLO2G43YAS6LIHLLH2LSZO --unattended
 sleep 10
 
 # Start the runner
