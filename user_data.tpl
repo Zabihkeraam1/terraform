@@ -56,7 +56,8 @@ tar xzf ./actions-runner-linux-x64-2.309.0.tar.gz || { echo "Failed to extract G
 sudo chown -R ubuntu:ubuntu /home/ubuntu/actions-runner
 sleep 10
 cd /home/ubuntu/actions-runner
-chmod +x /home/ubuntu/actions-runner/config.sh
+sudo chmod +x /home/ubuntu/actions-runner/config.sh
+rm -f .runner .credentials
 # Configure the runner automatically
 ./config.sh --url https://github.com/Zabihkeraam1/terraform --token BHOW73EWLO2G43YAS6LIHLLH2LSZO --unattended
 sleep 10
