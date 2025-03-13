@@ -6,12 +6,21 @@ sudo apt install -y docker.io nginx
 sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -aG docker $USER
+newgrp docker
 sudo systemctl restart docker
 
 # Install Docker Buildx
 mkdir -p ~/.docker/cli-plugins
 curl -sSL https://github.com/docker/buildx/releases/download/v0.10.0/buildx-v0.10.0.linux-amd64 -o ~/.docker/cli-plugins/docker-buildx || { echo "Failed to download Docker Buildx"; exit 1; }
+
+# Make Docker Buildx executable
+sudo chmod +x ~/.docker/cli-plugins/docker-buildx
+
+# Start and enable Docker
+sudo systemctl start docker
 chmod +x ~/.docker/cli-plugins/docker-buildx
+# Enable Buildx as the default builder
+docker buildx create --use
 
 # Start and enable Nginx
 sudo systemctl start nginx
@@ -52,7 +61,7 @@ tar xzf ./actions-runner-linux-x64-2.309.0.tar.gz || { echo "Failed to extract G
 sudo chown -R ubuntu:ubuntu /home/ubuntu/actions-runner
 
 # Configure the runner automatically
-./config.sh --url https://github.com/Zabihkeraam1/terraform --token BHOW73DNGRUSDPQXUATJ3GTH2LAZO --unattended || { echo "Failed to configure GitHub Actions runner"; exit 1; }
+./config.sh --url https://github.com/Zabihkeraam1/terraform --token BHOW73AF4GV7UNNC53NVI4DH2LLEE --unattended || { echo "Failed to configure GitHub Actions runner"; exit 1; }
 
 # Start the runner
 ./run.sh || { echo "Failed to start GitHub Actions runner"; exit 1; }
