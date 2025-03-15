@@ -106,11 +106,12 @@ jobs:
       - name: Get Instance Public IP
         id: get_ip
         run: |
-          echo "Terraform output:"
-          terraform output
-          echo "Raw instance_public_ip:"
-          terraform output -raw instance_public_ip
-          echo "PUBLIC_IP=$(terraform output -raw instance_public_ip)" >> $GITHUB_ENV
+          IP=$(terraform output -raw instance_public_ip | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
+          if [ -z "$IP" ]; then
+            echo "Error: instance_public_ip is empty or invalid."
+            exit 1
+          fi
+          echo "PUBLIC_IP=$IP" >> $GITHUB_ENV
 
       # Generate an SSH key pair
       - name: Generate SSH Key Pair
