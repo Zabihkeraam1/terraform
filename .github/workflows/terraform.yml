@@ -122,8 +122,8 @@ jobs:
         id: generate_ssh_key
         run: |
           ssh-keygen -t rsa -b 4096 -C "github-actions" -f id_rsa -N ""
-          echo "PRIVATE_KEY=$(cat id_rsa)" >> $GITHUB_ENV
-          echo "PUBLIC_KEY=$(cat id_rsa.pub)" >> $GITHUB_ENV
+          echo PRIVATE_KEY=$(cat id_rsa) >> $GITHUB_ENV
+          echo PUBLIC_KEY=$(cat id_rsa.pub) >> $GITHUB_ENV
 
       # Add the public key to the instance
       - name: Add Public Key to Instance
