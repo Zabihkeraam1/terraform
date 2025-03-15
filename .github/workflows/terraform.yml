@@ -128,6 +128,8 @@ jobs:
       # Add the public key to the instance
       - name: Add Public Key to Instance
         run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
           ssh-keyscan ${{ env.PUBLIC_IP }} >> ~/.ssh/known_hosts
           ssh -i id_rsa ubuntu@${{ env.PUBLIC_IP }} "echo '${{ env.PUBLIC_KEY }}' >> ~/.ssh/authorized_keys"
 
