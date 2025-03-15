@@ -90,11 +90,23 @@ resource "aws_instance" "web_server" {
   tags = {
     Name = "web-server"
   }
+    # Add the public key to the instance
+  # provisioner "file" {
+  #   source      = "id_rsa.pub"
+  #   destination = "/home/ubuntu/.ssh/authorized_keys"
+
+  #   connection {
+  #     type        = "ssh"
+  #     user        = "ubuntu"
+  #     private_key = file("id_rsa") # Use the private key for authentication
+  #     host        = self.public_ip
+  #   }
+  # }
 
   # Render the user_data script using the templatefile function
-  user_data = templatefile("user_data.tpl", {
-    public_ip = aws_eip.web_server_eip.public_ip
-  })
+  # user_data = templatefile("user_data.tpl", {
+  #   public_ip = aws_eip.web_server_eip.public_ip
+  # })
 }
 
 # Output the public IP of the EC2 instance

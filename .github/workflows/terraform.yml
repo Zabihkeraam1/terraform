@@ -1,4 +1,56 @@
-name: Terraform Plan and Apply
+# name: Terraform Plan and Apply
+
+# on:
+#   push:
+#     branches:
+#       - master
+
+# jobs:
+#   terraform:
+#     name: Terraform
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       # Check out the repository
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+#       # Set up Terraform
+#       - name: Set up Terraform
+#         uses: hashicorp/setup-terraform@v2
+#         with:
+#           terraform_version: 1.5.0  # Use the latest stable version
+
+#       # Initialize Terraform
+#       - name: Terraform Init
+#         id: init
+#         run: terraform init
+
+#       # Destroy existing resources (if any)
+#       - name: Terraform Destroy (if needed)
+#         id: destroy
+#         run: terraform destroy -auto-approve
+#         env:
+#           TF_VAR_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           TF_VAR_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+#       # Run Terraform Plan
+#       - name: Terraform Plan
+#         id: plan
+#         run: terraform plan
+#         env:
+#           TF_VAR_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           TF_VAR_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+#       # Run Terraform Apply (if Plan succeeds)
+#       - name: Terraform Apply
+#         if: success()
+#         run: terraform apply -auto-approve
+#         env:
+#           TF_VAR_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           TF_VAR_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+name: Terraform Plan, Apply, and Configure Instance
 
 on:
   push:
@@ -49,3 +101,48 @@ jobs:
         env:
           TF_VAR_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           TF_VAR_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      # Get the public IP of the instance from Terraform output
+      - name: Get Instance Public IP
+        id: get_ip
+        run: |
+          echo "PUBLIC_IP=$(terraform output -raw instance_public_ip)" >> $GITHUB_ENV
+
+      # Generate an SSH key pair
+      - name: Generate SSH Key Pair
+        id: generate_ssh_key
+        run: |
+          ssh-keygen -t rsa -b 4096 -C "github-actions" -f id_rsa -N ""
+          echo "PRIVATE_KEY=$(cat id_rsa)" >> $GITHUB_ENV
+          echo "PUBLIC_KEY=$(cat id_rsa.pub)" >> $GITHUB_ENV
+
+      # Add the public key to the instance
+      - name: Add Public Key to Instance
+        run: |
+          ssh-keyscan ${{ env.PUBLIC_IP }} >> ~/.ssh/known_hosts
+          ssh -i id_rsa ubuntu@${{ env.PUBLIC_IP }} "echo '${{ env.PUBLIC_KEY }}' >> ~/.ssh/authorized_keys"
+
+      # Install Ansible
+      - name: Install Ansible
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible
+
+      # Copy Ansible playbook and inventory to the runner
+      - name: Prepare Ansible files
+        run: |
+          mkdir -p ansible
+          cp ./ansible-playbook.yml ./ansible/
+          echo "[webservers]" > ./ansible/hosts
+          echo "${{ env.PUBLIC_IP }}" >> ./ansible/hosts
+
+      # Run Ansible playbook to configure the instance
+      - name: Run Ansible Playbook
+        run: |
+          cd ansible
+          ansible-playbook -i hosts ansible-playbook.yml --user ubuntu --private-key ../id_rsa
+
+      # Securely delete the private key
+      - name: Securely Delete Private Key
+        run: |
+          shred -u id_rsa id_rsa.pub
