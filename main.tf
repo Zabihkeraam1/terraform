@@ -92,15 +92,6 @@ resource "aws_instance" "web_server" {
   }
 
 }
-# Create an Elastic IP
-resource "aws_eip" "web_server_eip" {
-  domain = "vpc"
-}
-# Associate the Elastic IP with the EC2 instance
-resource "aws_eip_association" "web_server_eip_assoc" {
-  instance_id   = aws_instance.web_server.id
-  allocation_id = aws_eip.web_server_eip.id
-}
 # Output the public IP of the EC2 instance
 # output "instance_public_ip" {
 #   value = aws_instance.web_server.public_ip
