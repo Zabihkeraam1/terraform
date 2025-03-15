@@ -101,21 +101,22 @@ jobs:
         env:
           TF_VAR_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           TF_VAR_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      
+      - name: Debug Terraform Output
+        run: terraform output instance_public_ip
 
       # Get the public IP of the instance from Terraform output
       - name: Get Instance Public IP
         id: get_ip
         run: |
-          IP=$(terraform output -raw instance_public_ip 2>/dev/null | tr -d '"')
-          if [[ ! "$IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          IP=$(terraform output instance_public_ip | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
+          if [[ -z "$IP" ]]; then
             echo "Error: Extracted IP is invalid: $IP"
             exit 1
           fi
-          echo "PUBLIC_IP=${IP}" >> $GITHUB_ENV
+          echo PUBLIC_IP=${IP} >> $GITHUB_ENV
     
     
-    
-
       # Generate an SSH key pair
       - name: Generate SSH Key Pair
         id: generate_ssh_key
