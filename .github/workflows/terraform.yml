@@ -131,7 +131,7 @@ jobs:
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           ssh-keyscan ${{ env.PUBLIC_IP }} >> ~/.ssh/known_hosts
-          ssh -i id_rsa ubuntu@${{ env.PUBLIC_IP }} "echo '${{ env.PUBLIC_KEY }}' >> ~/.ssh/authorized_keys"
+          echo "${{ env.PUBLIC_KEY }}" | ssh -i id_rsa ubuntu@${{ env.PUBLIC_IP }} "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys"
 
       # Install Ansible
       - name: Install Ansible
