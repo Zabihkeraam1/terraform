@@ -56,11 +56,10 @@ jobs:
       # Get the public IP of the instance from Terraform output
       - name: Get Instance Public IP
         id: get_ip
-        run: echo PUBLIC_IP=$(terraform output -raw instance_public_ip) >> $GITHUB_ENV
+        run: echo "PUBLIC_IP=$(terraform output -raw instance_public_ip)" >> $GITHUB_ENV
 
       - name: Debug PUBLIC_IP
-        run: |
-          echo "Public IP: ${{ env.PUBLIC_IP }}"
+        run: echo ${{ env.PUBLIC_IP }}
         
       # Wait for instance to initialize
       - name: Wait for Instance to Initialize
