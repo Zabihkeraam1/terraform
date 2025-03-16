@@ -65,8 +65,8 @@ jobs:
       # Debug Network Connectivity
       - name: Debug Network Connectivity
         run: |
-          nc -zv 4 google.com 80
-          nc -zv 4 ${{ env.PUBLIC_IP }} 22
+          nc -zv google.com 80
+          nc -zv ${{ env.PUBLIC_IP }} 22
       
       # Update /etc/hosts
       - name: Update /etc/hosts
