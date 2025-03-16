@@ -1,11 +1,13 @@
+
 - name: Configure server with Docker, Nginx, and GitHub Actions runner
   hosts: all
   become: yes
   vars:
+    ansible_user: "ubuntu"
     docker_buildx_version: "v0.10.0"
     github_runner_version: "2.309.0"
     github_repo_url: "https://github.com/Zabihkeraam1/terraform"
-    github_runner_token: "BHOW73FOGIVWRF5VMEFTHDDH2MEI6"
+    github_runner_token: "BHOW73H5QFGDQ5KFLPNEOX3H2WVBQ"
     nginx_conf_path: "/etc/nginx/conf.d/test.conf"
     actions_runner_dir: "/home/ubuntu/actions-runner"
 
@@ -32,13 +34,20 @@
         name: "{{ ansible_user }}"
         groups: docker
         append: yes
+    - name: Ensure Docker CLI plugins directory exists
+      file:
+        path: "/home/{{ ansible_user }}/.docker/cli-plugins"
+        state: directory
+        mode: '0755'
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
 
     - name: Install Docker Buildx
       ansible.builtin.get_url:
         url: "https://github.com/docker/buildx/releases/download/{{ docker_buildx_version }}/buildx-{{ docker_buildx_version }}.linux-amd64"
-        dest: "~/.docker/cli-plugins/docker-buildx"
+        dest: "/home/{{ ansible_user }}/.docker/cli-plugins/docker-buildx"
         mode: '0755'
-      become_user: "{{ ansible_user }}"
+
 
     - name: Restart Docker service
       service:

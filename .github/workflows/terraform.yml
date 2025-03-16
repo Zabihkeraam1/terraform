@@ -57,11 +57,17 @@ jobs:
       - name: Get Instance Public IP
         id: get_ip
         run: echo PUBLIC_IP=$(terraform output -raw instance_public_ip) >> $GITHUB_ENV
+
+      # Debug Network Connectivity
+      - name: Debug Network Connectivity
+        run: |
+          ping -c 4 google.com
+          ping -c 4 ${{ env.PUBLIC_IP }}
       
       # Update /etc/hosts
       - name: Update /etc/hosts
         run: |
-          echo "${{ env.PUBLIC_IP }} ec2-instance" | sudo tee -a /etc/hosts
+          sudo bash -c 'echo "${{ env.PUBLIC_IP }} ec2-instance" >> /etc/hosts'
     
       # # Generate an SSH key pair
       # - name: Generate SSH Key Pair
