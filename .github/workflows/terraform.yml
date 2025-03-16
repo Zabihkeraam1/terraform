@@ -181,17 +181,10 @@ jobs:
           TF_VAR_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           TF_VAR_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       
-      # Get the public IP of the instance from Terraform output and set as env variable
-      - name: Get Instance Public IP
-        id: get_ip
-        run: |
-          PUBLIC_IP=$(terraform output -raw instance_public_ip)
-          echo "PUBLIC_IP=${PUBLIC_IP}" >> $GITHUB_ENV
+      # Debug Terraform Output
+      - name: Debug Terraform Output
+        run: terraform output instance_public_ip
 
-      # Debug PUBLIC_IP
-      - name: Debug PUBLIC_IP
-        run: echo "Public IP ${{ env.PUBLIC_IP }}"
-        
       # Wait for instance to initialize
       - name: Wait for Instance to Initialize
         run: sleep 60  # Wait for 60 seconds
@@ -200,12 +193,12 @@ jobs:
       - name: Debug Network Connectivity
         run: |
           nc -zv google.com 80
-          ping ${{ env.PUBLIC_IP }}
+          ping $(terraform output -raw instance_public_ip)
       
       # Update /etc/hosts
       - name: Update /etc/hosts
         run: |
-          sudo bash -c 'echo "${{ env.PUBLIC_IP }} ec2-instance" >> /etc/hosts'
+          sudo bash -c 'echo "$(terraform output -raw instance_public_ip) ec2-instance" >> /etc/hosts'
     
       # Generate an SSH key pair
       - name: Generate SSH Key Pair
@@ -222,8 +215,8 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          ssh-keyscan ${{ env.PUBLIC_IP }} >> ~/.ssh/known_hosts
-          echo "${{ env.PUBLIC_KEY }}" | ssh -i id_rsa ubuntu@${{ env.PUBLIC_IP }} "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys"
+          ssh-keyscan $(terraform output -raw instance_public_ip) >> ~/.ssh/known_hosts
+          echo "${{ env.PUBLIC_KEY }}" | ssh -i id_rsa ubuntu@$(terraform output -raw instance_public_ip) "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys"
 
       # Install Ansible
       - name: Install Ansible
@@ -237,7 +230,7 @@ jobs:
           mkdir -p ansible
           cp ./ansible-playbook.yml ./ansible/
           echo "[webservers]" > ./ansible/hosts
-          echo "${{ env.PUBLIC_IP }}" >> ./ansible/hosts
+          echo "$(terraform output -raw instance_public_ip)" >> ./ansible/hosts
 
       # Run Ansible playbook to configure the instance
       - name: Run Ansible Playbook
