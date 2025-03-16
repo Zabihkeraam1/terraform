@@ -93,7 +93,13 @@ resource "aws_instance" "web_server" {
   ami             = "ami-02e2af61198e99faf"
   instance_type   = "t3.micro"
   security_groups = [aws_security_group.web_server_sg.name]
-
+  user_data     = <<-EOF
+                #cloud-config
+                users:
+                  - name: ubuntu
+                    ssh-authorized-keys:
+                      - ${file("~/.ssh/id_rsa.pub")}
+                EOF
   tags = {
     Name = "web-server"
   }
