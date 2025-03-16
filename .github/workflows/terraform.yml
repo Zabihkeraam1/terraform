@@ -58,11 +58,15 @@ jobs:
         id: get_ip
         run: echo PUBLIC_IP=$(terraform output -raw instance_public_ip) >> $GITHUB_ENV
 
+      # Wait for instance to initialize
+      - name: Wait for Instance to Initialize
+        run: sleep 60  # Wait for 60 seconds
+
       # Debug Network Connectivity
       - name: Debug Network Connectivity
         run: |
-          ping -c 4 google.com
-          ping -c 4 ${{ env.PUBLIC_IP }}
+          nc -zv 4 google.com 80
+          nc -zv 4 ${{ env.PUBLIC_IP }} 22
       
       # Update /etc/hosts
       - name: Update /etc/hosts
