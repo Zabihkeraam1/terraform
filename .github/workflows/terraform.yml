@@ -184,6 +184,10 @@ jobs:
       # Get the public IP of the instance from Terraform output
       - name: Get Instance Public IP
         id: get_ip
+        run: echo "::set-output name=PUBLIC_IP::$(terraform output -raw instance_public_ip)"
+      
+      # Set the PUBLIC_IP environment variable
+      - name: Set PUBLIC_IP Environment Variable
         run: echo "PUBLIC_IP=$(terraform output -raw instance_public_ip)" >> $GITHUB_ENV
 
       # Debug PUBLIC_IP
