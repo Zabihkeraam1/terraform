@@ -97,7 +97,10 @@ jobs:
           echo "Ansible files prepared"
           ls -l ./ansible   # Debug: Show the contents of the ansible directory
           cat ./ansible/hosts   # Debug: Show the contents of the hosts file
-
+      - name: Debug PUBLIC_IP
+        run: |
+          echo "Public IP: ${{ secrets.PUBLIC_IP }}"
+          echo "Private key: ${{ secrets.PRIVATE_KEY }}"
       - name: Run Ansible Playbook
         run: |
           cd ansible
