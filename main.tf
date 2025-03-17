@@ -124,10 +124,6 @@ resource "aws_instance" "web_server" {
 
 }
 
-# Output the public IP of the EC2 instance
-# output "instance_public_ip" {
-#   value = aws_instance.web_server.public_ip
-# }
 # Introduce a delay before outputting the IP address
 resource "null_resource" "delay" {
   depends_on = [aws_eip_association.web_server_eip_assoc]
@@ -142,6 +138,8 @@ output "private_key" {
   value     = tls_private_key.github_actions.private_key_pem
   sensitive = true  # Mark the output as sensitive to avoid logging
 }
+
+# Output the public IP of the EC2 instance
 output "instance_public_ip" {
   value = aws_eip.web_server_eip.public_ip
 }

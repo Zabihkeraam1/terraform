@@ -179,12 +179,17 @@ jobs:
       - name: Debug Terraform Output
         run: terraform output private_key
 
-      # Get the public IP and private key from Terraform output
+      # Capture Terraform Outputs
       - name: Get Terraform Outputs
         id: get_outputs
         run: |
-          echo "PUBLIC_IP=$(terraform output -raw instance_public_ip)" >> $GITHUB_ENV
-          echo "PRIVATE_KEY=$(terraform output -raw private_key)" >> $GITHUB_ENV
+          PUBLIC_IP=$(terraform output -raw instance_public_ip)
+          PRIVATE_KEY=$(terraform output -raw private_key)
+          echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
+          echo "PRIVATE_KEY=$PRIVATE_KEY" >> $GITHUB_ENV
+
+      - name: Debug GITHUB_ENV
+        run: cat $GITHUB_ENV
 
       # Debug Outputs
       - name: Debug Outputs
