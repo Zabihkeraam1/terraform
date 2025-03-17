@@ -41,7 +41,7 @@ jobs:
         run: |
           terraform output -raw instance_public_ip
           terraform output -raw private_key
-          echo "$(terraform output -raw instance_public_ip | awk '{print $1}')" > public_ip.txt
+          echo "$(terraform output -raw instance_public_ip | awk -F '::' '{print $1}')" > public_ip.txt
           echo "$(terraform output -raw private_key)" > private_key.txt
 
       - name: Debug Files
@@ -95,11 +95,10 @@ jobs:
         run: |
           mkdir -p ansible
           cp ./ansible-playbook.yml ./ansible/
-          printf "[webservers]\n$(cat ./terraform-outputs/public_ip.txt) ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa\n" > ./ansible/hosts
+          printf "[servers]\n$(cat ./terraform-outputs/public_ip.txt) ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa\n" > ./ansible/hosts
           echo "Ansible files prepared"
           ls -l ./ansible   # Debug: Show the contents of the ansible directory
           cat ./ansible/hosts   # Debug: Show the contents of the hosts file
-          cat ./terraform-outputs/public_ip.txt
 
       - name: Debug PUBLIC_IP
         run: |
