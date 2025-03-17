@@ -42,40 +42,13 @@ jobs:
           echo "$(terraform output -raw instance_public_ip)" > public_ip.txt
           echo "$(terraform output -raw private_key)" > private_key.txt
 
-      - name: Create Shared Directory and Set Permissions
-        run: |
-          # Create the shared directory
-          sudo mkdir -p /opt/shared_data/
-      
-          # Set permissions to ensure it is accessible by all users
-          sudo chown root:root /opt/shared_data/
-          sudo chmod 777 /opt/shared_data/
-        
-      - name: Copy Files to Shared Directory
-        run: |
-          # Copy the files to /opt/shared_data/
-          sudo cp public_ip.txt /opt/shared_data/
-          sudo cp private_key.txt /opt/shared_data/
-      
-          # Verify the files are copied
-          ls -l /opt/shared_data/
-
-      - name: Debug Files
-        run: |
-          ls -l
-          cat public_ip.txt
-          cat private_key.txt
-
-      - name: Authenticate GitHub CLI
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}  # Use the PAT stored in GitHub Secrets
-        run: |
-          echo "$GH_PAT" | gh auth login --with-token
-
-      - name: Save Outputs to GitHub Secrets
-        run: |
-          gh secret set PUBLIC_IP --body "$(cat public_ip.txt)"
-          gh secret set PRIVATE_KEY --body "$(cat private_key.txt)"
+      - name: Upload Terraform Outputs as Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-outputs
+          path: |
+            public_ip.txt
+            private_key.txt
 
   configure:
     name: Configure Instance
@@ -86,16 +59,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Use shared Secrets
-        run: |
-          sudo cat /opt/shared_data/public_ip.txt
-          sudo cat /opt/shared_data/private_key.txt
-
+      - name: Download Terraform Outputs Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: terraform-outputs
+          path: ./terraform-outputs
 
       - name: Save Private Key
         run: |
           mkdir -p ~/.ssh
-          printf "%s\n" "${{ secrets.PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          printf "%s\n" "$(cat ./terraform-outputs/private_key.txt)" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           echo "Private key saved to ~/.ssh/id_rsa"
           ls -l ~/.ssh   # Debug: Show the contents of the ~/.ssh directory
@@ -113,14 +86,17 @@ jobs:
           mkdir -p ansible
           cp ./ansible-playbook.yml ./ansible/
           echo "[webservers]" > ./ansible/hosts
-          echo "${{ secrets.PUBLIC_IP }} ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa" >> ./ansible/hosts
+          echo "$(cat ./terraform-outputs/public_ip.txt) ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa" >> ./ansible/hosts
           echo "Ansible files prepared"
           ls -l ./ansible   # Debug: Show the contents of the ansible directory
           cat ./ansible/hosts   # Debug: Show the contents of the hosts file
+          cat ./terraform-outputs/public_ip.txt
+
       - name: Debug PUBLIC_IP
         run: |
-          echo "Public IP: ${{ secrets.PUBLIC_IP }}"
-          echo "Private key: ${{ secrets.PRIVATE_KEY }}"
+          echo "Public IP: $(cat ./terraform-outputs/public_ip.txt)"
+          echo "Private key: $(cat ./terraform-outputs/private_key.txt)"
+
       - name: Run Ansible Playbook
         run: |
           cd ansible
