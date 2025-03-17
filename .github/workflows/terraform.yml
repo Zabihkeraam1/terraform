@@ -77,8 +77,8 @@ jobs:
         run: |
           PUBLIC_IP=$(cat ./terraform-outputs/public_ip.txt)
           PRIVATE_KEY=$(cat ./terraform-outputs/private_key.txt)
-          echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
-          echo "PRIVATE_KEY=$PRIVATE_KEY" >> $GITHUB_ENV
+          echo $PUBLIC_IP
+          echo $PRIVATE_KEY
 
       - name: Debug Outputs
         run: |
