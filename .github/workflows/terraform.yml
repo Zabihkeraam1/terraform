@@ -90,21 +90,30 @@ jobs:
           mkdir -p ~/.ssh
           printf "%s\n" "$PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+          echo "Private key saved to ~/.ssh/id_rsa"
+          ls -l ~/.ssh   # Debug: Show the contents of the ~/.ssh directory
 
       - name: Install Ansible
         run: |
           sudo apt-get update
           sudo apt-get install -y ansible
+          echo "Ansible installed"
+          ansible --version  # Debug: Show the installed Ansible version
 
       - name: Prepare Ansible files
         run: |
           mkdir -p ansible
           cp ./ansible-playbook.yml ./ansible/
           printf "[webservers]\n$PUBLIC_IP ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa\n" > ./ansible/hosts
+          echo "Ansible files prepared"
+          ls -l ./ansible   # Debug: Show the contents of the ansible directory
+          cat ./ansible/hosts   # Debug: Show the contents of the hosts file
 
       - name: Run Ansible Playbook
         run: |
           cd ansible
+          echo "Current directory: $(pwd)"
+          ls -l 
           ansible-playbook -i hosts ansible-playbook.yml --user ubuntu --private-key ~/.ssh/id_rsa
 
       - name: Securely Delete Private Key
