@@ -95,10 +95,15 @@ jobs:
         run: |
           mkdir -p ansible
           cp ./ansible-playbook.yml ./ansible/
-          printf "[servers]\n$(cat ./terraform-outputs/public_ip.txt) ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa\n" > ./ansible/hosts
+          printf "[servers]\n$(cat ./terraform-outputs/public_ip.txt) ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa\n" > ./ansible/inventory.ini
           echo "Ansible files prepared"
           ls -l ./ansible   # Debug: Show the contents of the ansible directory
-          cat ./ansible/hosts   # Debug: Show the contents of the hosts file
+          cat ./ansible/inventory.ini   # Debug: Show the contents of the hosts file
+
+      - name: Debug Ansible Inventory File
+        run: |
+          echo "Contents of Ansible inventory.ini:"
+          cat ./ansible/inventory.ini
 
       - name: Debug PUBLIC_IP
         run: |
@@ -110,7 +115,7 @@ jobs:
           cd ansible
           echo "Current directory: $(pwd)"
           ls -l 
-          ansible-playbook -i hosts ansible-playbook.yml --user ubuntu --private-key ~/.ssh/id_rsa
+          ansible-playbook -i inventory.ini ansible-playbook.yml --user ubuntu --private-key ~/.ssh/id_rsa
 
       - name: Securely Delete Private Key
         if: always()
