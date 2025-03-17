@@ -1,5 +1,3 @@
-
-
 name: Terraform Plan, Apply, and Configure Instance
 
 on:
@@ -50,13 +48,16 @@ jobs:
           cat public_ip.txt
           cat private_key.txt
 
-      - name: Upload Outputs as Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-outputs
-          path: |
-            public_ip.txt
-            private_key.txt
+      - name: Authenticate GitHub CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.CLI_GITHUB_TOKEN }}
+        run: |
+          gh auth login --with-token <<< "$GITHUB_TOKEN"
+
+      - name: Save Outputs to GitHub Secrets
+        run: |
+          gh secret set PUBLIC_IP --body "$(cat public_ip.txt)"
+          gh secret set PRIVATE_KEY --body "$(cat private_key.txt)"
 
   configure:
     name: Configure Instance
@@ -67,28 +68,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Download Terraform Outputs
-        uses: actions/download-artifact@v4
-        with:
-          name: terraform-outputs
-          path: ./terraform-outputs
-
-      - name: Read Terraform Outputs
+      - name: Use GitHub Secrets
         run: |
-          PUBLIC_IP=$(cat ./terraform-outputs/public_ip.txt)
-          PRIVATE_KEY=$(cat ./terraform-outputs/private_key.txt)
-          echo $PUBLIC_IP
-          echo $PRIVATE_KEY
-
-      - name: Debug Outputs
-        run: |
-          echo Public IP: $PUBLIC_IP
-          echo Private Key: $PRIVATE_KEY
+          echo "Public IP: ${{ secrets.PUBLIC_IP }}"
+          echo "Private Key: ${{ secrets.PRIVATE_KEY }}"
 
       - name: Save Private Key
         run: |
           mkdir -p ~/.ssh
-          printf "%s\n" "$PRIVATE_KEY" > ~/.ssh/id_rsa
+          printf "%s\n" "${{ secrets.PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           echo "Private key saved to ~/.ssh/id_rsa"
           ls -l ~/.ssh   # Debug: Show the contents of the ~/.ssh directory
@@ -105,7 +93,7 @@ jobs:
         run: |
           mkdir -p ansible
           cp ./ansible-playbook.yml ./ansible/
-          printf "[webservers]\n$PUBLIC_IP ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa\n" > ./ansible/hosts
+          printf "[webservers]\n${{ secrets.PUBLIC_IP }} ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa\n" > ./ansible/hosts
           echo "Ansible files prepared"
           ls -l ./ansible   # Debug: Show the contents of the ansible directory
           cat ./ansible/hosts   # Debug: Show the contents of the hosts file
