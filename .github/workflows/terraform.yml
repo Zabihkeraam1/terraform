@@ -49,6 +49,12 @@ jobs:
           echo "$(terraform output -raw instance_public_ip)" > public_ip.txt
           echo "$(terraform output -raw private_key)" > private_key.txt
 
+      - name: Debug Files
+        run: |
+          ls -l
+          cat public_ip.txt
+          cat private_key.txt
+
       - name: Upload Outputs as Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -70,6 +76,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: terraform-outputs
+          path: |
+            public_ip.txt
+            private_key.txt
 
       - name: Read Terraform Outputs
         run: |
