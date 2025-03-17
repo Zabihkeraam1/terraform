@@ -39,13 +39,17 @@ jobs:
 
       - name: Save Terraform Outputs to File
         run: |
-          echo "$(terraform output -raw instance_public_ip)" > public_ip.txt
+          terraform output -raw instance_public_ip
+          terraform output -raw private_key
+          echo "$(terraform output -raw instance_public_ip | awk '{print $1}')" > public_ip.txt
           echo "$(terraform output -raw private_key)" > private_key.txt
 
       - name: Debug Files
         run: |
           ls -l
+          echo "Contents of public_ip.txt:"
           cat public_ip.txt
+          echo "Contents of private_key.txt:"
           cat private_key.txt
 
       - name: Upload Terraform Outputs as Artifacts
@@ -91,8 +95,7 @@ jobs:
         run: |
           mkdir -p ansible
           cp ./ansible-playbook.yml ./ansible/
-          echo "[webservers]" > ./ansible/hosts
-          echo "$(cat ./terraform-outputs/public_ip.txt) ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa" >> ./ansible/hosts
+          printf "[webservers]\n$(cat ./terraform-outputs/public_ip.txt) ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa\n" > ./ansible/hosts
           echo "Ansible files prepared"
           ls -l ./ansible   # Debug: Show the contents of the ansible directory
           cat ./ansible/hosts   # Debug: Show the contents of the hosts file
