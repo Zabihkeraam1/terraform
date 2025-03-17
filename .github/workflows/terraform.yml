@@ -42,6 +42,24 @@ jobs:
           echo "$(terraform output -raw instance_public_ip)" > public_ip.txt
           echo "$(terraform output -raw private_key)" > private_key.txt
 
+      - name: Create Shared Directory and Set Permissions
+        run: |
+          # Create the shared directory
+          sudo mkdir -p /opt/shared_data/
+      
+          # Set permissions to ensure it is accessible by all users
+          sudo chown root:root /opt/shared_data/
+          sudo chmod 777 /opt/shared_data/
+        
+      - name: Copy Files to Shared Directory
+        run: |
+          # Copy the files to /opt/shared_data/
+          sudo cp public_ip.txt /opt/shared_data/
+          sudo cp private_key.txt /opt/shared_data/
+      
+          # Verify the files are copied
+          ls -l /opt/shared_data/
+
       - name: Debug Files
         run: |
           ls -l
@@ -68,10 +86,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Use GitHub Secrets
+      - name: Use shared Secrets
         run: |
-          echo "Public IP: ${{ secrets.PUBLIC_IP }}"
-          echo "Private Key: ${{ secrets.PRIVATE_KEY }}"
+          sudo cat /opt/shared_data/public_ip.txt
+          sudo cat /opt/shared_data/private_key.txt
+
 
       - name: Save Private Key
         run: |
