@@ -82,8 +82,8 @@ jobs:
 
       - name: Debug Outputs
         run: |
-          echo "Public IP: $PUBLIC_IP"
-          echo "Private Key: [HIDDEN]"
+          echo Public IP: $PUBLIC_IP
+          echo Private Key: $PRIVATE_KEY
 
       - name: Save Private Key
         run: |
@@ -92,6 +92,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           echo "Private key saved to ~/.ssh/id_rsa"
           ls -l ~/.ssh   # Debug: Show the contents of the ~/.ssh directory
+          cat ~/.ssh/id_rsa 
 
       - name: Install Ansible
         run: |
