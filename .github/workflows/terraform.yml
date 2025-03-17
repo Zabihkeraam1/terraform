@@ -26,14 +26,6 @@
 #         id: init
 #         run: terraform init
 
-#       # Destroy existing resources (if any)
-#       - name: Terraform Destroy (if needed)
-#         id: destroy
-#         run: terraform destroy -auto-approve
-#         env:
-#           TF_VAR_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#           TF_VAR_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
 #       # Run Terraform Plan
 #       - name: Terraform Plan
 #         id: plan
@@ -49,59 +41,43 @@
 #         env:
 #           TF_VAR_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
 #           TF_VAR_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      
+
 #       - name: Debug Terraform Output
 #         run: terraform output instance_public_ip
 
-#       # Get the public IP of the instance from Terraform output
-#       - name: Get Instance Public IP
-#         id: get_ip
-#         run: echo "PUBLIC_IP=$(terraform output -raw instance_public_ip)" >> $GITHUB_ENV
+#       - name: Debug Terraform Output
+#         run: terraform output private_key
 
-#       # Debug PUBLIC_IP
-#       - name: Debug PUBLIC_IP
-#         run: echo "Public IP ${{ env.PUBLIC_IP }}"
-        
-#       # Wait for instance to initialize
-#       - name: Wait for Instance to Initialize
-#         run: sleep 60  # Wait for 60 seconds
-
-#       # Debug Network Connectivity
-#       - name: Debug Network Connectivity
+#       # Capture Terraform Outputs
+#       - name: Save Terraform Outputs to File
 #         run: |
-#           nc -zv google.com 80
-#           ping ${{ env.PUBLIC_IP }}
-      
-#       # Update /etc/hosts
-#       - name: Update /etc/hosts
-#         run: |
-#           sudo bash -c 'echo "${{ env.PUBLIC_IP }} ec2-instance" >> /etc/hosts'
-    
-#       # # Generate an SSH key pair
-#       # - name: Generate SSH Key Pair
-#       #   id: generate_ssh_key
-#       #   run: |
-#       #     ssh-keygen -t rsa -b 4096 -C "github-actions" -f id_rsa -N ""
-#       #     echo PRIVATE_KEY=$(cat id_rsa) >> $GITHUB_ENV
-#       #     echo PUBLIC_KEY=$(cat id_rsa.pub) >> $GITHUB_ENV
+#           echo "$(terraform output -raw instance_public_ip)" > public_ip.txt
+#           echo "$(terraform output -raw private_key)" > private_key.txt
 
-#       # Generate an SSH key pair
-#       - name: Generate SSH Key Pair
-#         id: generate_ssh_key
-#         run: |
-#           ssh-keygen -t rsa -b 4096 -C "github-actions" -f id_rsa -N ""
-#           PRIVATE_KEY=$(base64 -w 0 id_rsa)
-#           PUBLIC_KEY=$(cat id_rsa.pub)
-#           echo "PRIVATE_KEY=${PRIVATE_KEY}" >> $GITHUB_ENV
-#           echo "PUBLIC_KEY=${PUBLIC_KEY}" >> $GITHUB_ENV
+#       - name: Upload Outputs as Artifacts
+#         uses: actions/upload-artifact@v3
+#         with:
+#           name: terraform-outputs
+#           path: |
+#             public_ip.txt
+#             private_key.txt
 
-#       # Add the public key to the instance
-#       - name: Add Public Key to Instance
+#   configure:
+#     name: Configure Instance
+#     runs-on: ubuntu-latest
+#     needs: terraform
+
+#     steps:
+#       # Check out the repository
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+#       # Save the private key to a file
+#       - name: Save Private Key
 #         run: |
 #           mkdir -p ~/.ssh
-#           chmod 700 ~/.ssh
-#           ssh-keyscan ${{ env.PUBLIC_IP }} >> ~/.ssh/known_hosts
-#           echo "${{ env.PUBLIC_KEY }}" | ssh -i id_rsa ubuntu@${{ env.PUBLIC_IP }} "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys"
+#           echo $PRIVATE_KEY > ~/.ssh/id_rsa
+#           chmod 600 ~/.ssh/id_rsa
 
 #       # Install Ansible
 #       - name: Install Ansible
@@ -114,19 +90,19 @@
 #         run: |
 #           mkdir -p ansible
 #           cp ./ansible-playbook.yml ./ansible/
-#           echo "[webservers]" > ./ansible/hosts
-#           echo "${{ env.PUBLIC_IP }}" >> ./ansible/hosts
+#           printf "[webservers]\n${{ env.PUBLIC_IP }} ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa\n" > ./ansible/hosts
 
 #       # Run Ansible playbook to configure the instance
 #       - name: Run Ansible Playbook
 #         run: |
 #           cd ansible
-#           ansible-playbook -i hosts ansible-playbook.yml --user ubuntu --private-key ../id_rsa
+#           ansible-playbook -i hosts ansible-playbook.yml --user ubuntu --private-key ~/.ssh/id_rsa
 
 #       # Securely delete the private key
 #       - name: Securely Delete Private Key
+#         if: always()
 #         run: |
-#           shred -u id_rsa id_rsa.pub
+#           shred -u ~/.ssh/id_rsa
 
 
 name: Terraform Plan, Apply, and Configure Instance
@@ -142,22 +118,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Check out the repository
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Set up Terraform
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.5.0  # Use the latest stable version
+          terraform_version: 1.5.0
 
-      # Initialize Terraform
       - name: Terraform Init
         id: init
         run: terraform init
 
-      # Run Terraform Plan
       - name: Terraform Plan
         id: plan
         run: terraform plan
@@ -165,7 +137,6 @@ jobs:
           TF_VAR_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           TF_VAR_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      # Run Terraform Apply (if Plan succeeds)
       - name: Terraform Apply
         if: success()
         run: terraform apply -auto-approve
@@ -173,24 +144,18 @@ jobs:
           TF_VAR_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           TF_VAR_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Debug Terraform Output
-        run: terraform output instance_public_ip
-
-      - name: Debug Terraform Output
-        run: terraform output private_key
-
-      # Capture Terraform Outputs
-      - name: Get Terraform Outputs
-        id: get_outputs
+      - name: Save Terraform Outputs to File
         run: |
-          export PUBLIC_IP=$(terraform output -raw instance_public_ip)
-          export PRIVATE_KEY=$(terraform output -raw private_key)
+          echo "$(terraform output -raw instance_public_ip)" > public_ip.txt
+          echo "$(terraform output -raw private_key)" > private_key.txt
 
-      # Debug Outputs
-      - name: Debug Outputs
-        run: |
-          echo "Public IP: $PUBLIC_IP"
-          echo "Private Key: $PRIVATE_KEY"
+      - name: Upload Outputs as Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-outputs
+          path: |
+            public_ip.txt
+            private_key.txt
 
   configure:
     name: Configure Instance
@@ -198,38 +163,48 @@ jobs:
     needs: terraform
 
     steps:
-      # Check out the repository
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Save the private key to a file
+      - name: Download Terraform Outputs
+        uses: actions/download-artifact@v3
+        with:
+          name: terraform-outputs
+
+      - name: Read Terraform Outputs
+        run: |
+          PUBLIC_IP=$(cat public_ip.txt)
+          PRIVATE_KEY=$(cat private_key.txt)
+          echo "PUBLIC_IP=$PUBLIC_IP" >> $GITHUB_ENV
+          echo "PRIVATE_KEY=$PRIVATE_KEY" >> $GITHUB_ENV
+
+      - name: Debug Outputs
+        run: |
+          echo "Public IP: $PUBLIC_IP"
+          echo "Private Key: [HIDDEN]"
+
       - name: Save Private Key
         run: |
           mkdir -p ~/.ssh
-          echo $PRIVATE_KEY > ~/.ssh/id_rsa
+          printf "%s\n" "$PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-      # Install Ansible
       - name: Install Ansible
         run: |
           sudo apt-get update
           sudo apt-get install -y ansible
 
-      # Copy Ansible playbook and inventory to the runner
       - name: Prepare Ansible files
         run: |
           mkdir -p ansible
           cp ./ansible-playbook.yml ./ansible/
-          echo "[webservers]" > ./ansible/hosts
-                    echo "$PUBLIC_IP ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa" >> ./ansible/hosts
+          printf "[webservers]\n$PUBLIC_IP ansible_ssh_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa\n" > ./ansible/hosts
 
-      # Run Ansible playbook to configure the instance
       - name: Run Ansible Playbook
         run: |
           cd ansible
           ansible-playbook -i hosts ansible-playbook.yml --user ubuntu --private-key ~/.ssh/id_rsa
 
-      # Securely delete the private key
       - name: Securely Delete Private Key
         if: always()
         run: |
