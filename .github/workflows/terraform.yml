@@ -42,7 +42,7 @@ jobs:
           terraform output -raw instance_public_ip
           terraform output -raw private_key
           echo "$(terraform output -raw instance_public_ip | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')" > public_ip.txt
-          echo "$(terraform output -raw private_key | awk 'NF')" > private_key.txt
+          echo "$(terraform output -raw private_key | tail -n +2)" > private_key.txt
 
       - name: Debug Files
         run: |
