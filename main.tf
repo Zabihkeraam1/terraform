@@ -4,6 +4,14 @@ provider "aws" {
   secret_key = var.AWS_SECRET_ACCESS_KEY
 }
 
+terraform {
+  backend "s3" {
+    bucket = "state-bucket-webserver"
+    key    = "eu-north-1/terraform.tfstate"
+    region = "eu-north-1"
+  }
+}
+
 # Query the default VPC
 data "aws_vpc" "default" {
   default = true
