@@ -87,7 +87,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ansible
           echo "Ansible installed"
-          ansible --version  # Debug: Show the installed Ansible version
+          ansible --version
 
       - name: Prepare Ansible files
         run: |
@@ -98,8 +98,8 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H $(cat ./terraform-outputs/public_ip.txt) >> ~/.ssh/known_hosts
           echo "Ansible files prepared"
-          ls -l ./ansible   # Debug: Show the contents of the ansible directory
-          cat ./ansible/inventory.ini   # Debug: Show the contents of the hosts file
+          ls -l ./ansible
+          cat ./ansible/inventory.ini
 
       - name: Debug Ansible Inventory File
         run: |

@@ -3,41 +3,15 @@ provider "aws" {
   access_key = var.AWS_ACCESS_KEY_ID
   secret_key = var.AWS_SECRET_ACCESS_KEY
 }
-
-# Query the default VPC
-data "aws_vpc" "default" {
-  default = true
-}
-# Query the existing security group
-data "aws_security_group" "existing_sg" {
-  name = "web-server-sg"
-}
-
-# Query instances using the security group
-data "aws_instances" "instances_using_sg" {
-  filter {
-    name   = "instance.group-id"
-    values = [data.aws_security_group.existing_sg.id]
+terraform {
+  backend "s3" {
+    bucket = "my-terraform-state-bucket"
+    key    = "eu-north-1/terraform.tfstate"
+    region = "eu-north-1"
+    dynamodb_table = "terraform-lock-table"
   }
 }
 
-resource "null_resource" "delete_existing_sg" {
-  triggers = {
-    sg_id = data.aws_security_group.existing_sg.id
-  }
-
-  provisioner "local-exec" {
-    environment = {
-      AWS_ACCESS_KEY_ID     = var.AWS_ACCESS_KEY_ID
-      AWS_SECRET_ACCESS_KEY = var.AWS_SECRET_ACCESS_KEY
-      AWS_DEFAULT_REGION    = "eu-north-1"
-    }
-
-    command = <<-EOT
-      aws ec2 delete-security-group --group-id ${data.aws_security_group.existing_sg.id} --region eu-north-1
-    EOT
-  }
-}
 # Create a security group for the EC2 instance
 resource "aws_security_group" "web_server_sg" {
   depends_on = [null_resource.delete_existing_sg]
