@@ -13,7 +13,6 @@ provider "aws" {
 
 # Create a security group for the EC2 instance
 resource "aws_security_group" "web_server_sg" {
-  depends_on = [null_resource.delete_existing_sg]
   name        = "web-server-sg"
   description = "Allow HTTP, HTTPS, and SSH traffic"
   vpc_id      = data.aws_vpc.default.id
