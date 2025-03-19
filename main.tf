@@ -16,43 +16,16 @@ terraform {
 data "aws_vpc" "default" {
   default = true
 }
-# Query the existing security group
+
+# Try to get the existing security group by name
 data "aws_security_group" "existing_sg" {
   name = "web-server-sg"
 }
 
-# Query instances using the security group
-data "aws_instances" "instances_using_sg" {
-  filter {
-    name   = "instance.group-id"
-    values = [data.aws_security_group.existing_sg.id]
-  }
-}
-
-resource "null_resource" "delete_existing_sg" {
-  triggers = {
-    sg_id = data.aws_security_group.existing_sg.id
-  }
-
-  provisioner "local-exec" {
-    environment = {
-      AWS_ACCESS_KEY_ID     = var.AWS_ACCESS_KEY_ID
-      AWS_SECRET_ACCESS_KEY = var.AWS_SECRET_ACCESS_KEY
-      AWS_DEFAULT_REGION    = "eu-north-1"
-    }
-
-    command = <<-EOT
-      aws ec2 delete-security-group --group-id ${data.aws_security_group.existing_sg.id} --region eu-north-1
-    EOT
-  }
-
-  lifecycle {
-    ignore_changes = [triggers]
-  }
-}
-# Create a security group for the EC2 instance
+# If the security group doesn't exist, create a new one
 resource "aws_security_group" "web_server_sg" {
-  depends_on = [null_resource.delete_existing_sg]
+  count = length(data.aws_security_group.existing_sg.id) == 0 ? 1 : 0
+
   name        = "web-server-sg"
   description = "Allow HTTP, HTTPS, and SSH traffic"
   vpc_id      = data.aws_vpc.default.id
@@ -91,7 +64,22 @@ resource "aws_security_group" "web_server_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  lifecycle {
+    # Track changes and force update if necessary
+    ignore_changes = [ingress, egress]
+  }
 }
+
+# Query instances using the security group
+data "aws_instances" "instances_using_sg" {
+  filter {
+    name   = "instance.group-id"
+    values = [data.aws_security_group.existing_sg.id]
+  }
+}
+
+# Create an Elastic IP
 resource "aws_eip" "web_server_eip" {
   domain = "vpc"
 }
@@ -124,16 +112,16 @@ resource "aws_key_pair" "github_actions" {
   key_name   = "github-actions-key"
   public_key = tls_private_key.github_actions.public_key_openssh
 }
+
 # Create an EC2 instance
 resource "aws_instance" "web_server" {
   ami             = "ami-02e2af61198e99faf"
   instance_type   = "t3.micro"
   security_groups = [aws_security_group.web_server_sg.name]
-  key_name      = aws_key_pair.github_actions.key_name
+  key_name        = aws_key_pair.github_actions.key_name
   tags = {
     Name = "web-server"
   }
-
 }
 
 # Introduce a delay before outputting the IP address
