@@ -5,10 +5,9 @@ provider "aws" {
 }
 terraform {
   backend "s3" {
-    bucket = "my-terraform-state-bucket"
+    bucket = "state-bucket-webserver"
     key    = "eu-north-1/terraform.tfstate"
     region = "eu-north-1"
-    dynamodb_table = "terraform-lock-table"
   }
 }
 
