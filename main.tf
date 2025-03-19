@@ -7,7 +7,7 @@ provider "aws" {
 terraform {
   backend "s3" {
     bucket = "state-bucket-webserver"
-    key    = "eu-north-1/terraform.tfstate"
+    key    = "terraform.tfstate"
     region = "eu-north-1"
   }
 }
@@ -45,7 +45,7 @@ resource "null_resource" "delete_existing_sg" {
       aws ec2 delete-security-group --group-id ${data.aws_security_group.existing_sg.id} --region eu-north-1
     EOT
   }
-  
+
   lifecycle {
     ignore_changes = [triggers]
   }
