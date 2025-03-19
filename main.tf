@@ -3,13 +3,13 @@ provider "aws" {
   access_key = var.AWS_ACCESS_KEY_ID
   secret_key = var.AWS_SECRET_ACCESS_KEY
 }
-terraform {
-  backend "s3" {
-    bucket = "state-bucket-webserver"
-    key    = "eu-north-1/terraform.tfstate"
-    region = "eu-north-1"
-  }
-}
+# terraform {
+#   backend "s3" {
+#     bucket = "state-bucket-webserver"
+#     key    = "eu-north-1/terraform.tfstate"
+#     region = "eu-north-1"
+#   }
+# }
 
 # Create a security group for the EC2 instance
 resource "aws_security_group" "web_server_sg" {
