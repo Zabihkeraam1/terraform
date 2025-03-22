@@ -24,11 +24,29 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
+      
+      - name: Add current user to Docker group
+        run: |
+          sudo usermod -aG docker $USER
+          sudo chmod 660 /var/run/docker.sock
+          sudo chown root:docker /var/run/docker.sock
+
+      - name: Check current user
+        run: |
+          echo "Current user: $(whoami)"
+
+      - name: Check user groups
+        run: |
+          echo "Current user groups: $(groups)"
+
+      - name: Check Docker socket permissions
+        run: |
+          ls -l /var/run/docker.sock
 
       # Build the Docker image
       - name: Build Docker image
         run: |
-          docker buildx build --build-arg CONFIG=preprod --no-cache -t bitlinksai/terraform:preprod .
+          sg docker -c "docker buildx build --build-arg CONFIG=preprod --no-cache -t bitlinksai/terraform:preprod ."
         env:
           DOCKER_BUILDKIT: 1
 
