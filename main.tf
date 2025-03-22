@@ -23,7 +23,7 @@ data "aws_security_group" "existing_sg" {
 }
 
 # If the security group doesn't exist, create a new one
-resource "aws_security_group" "web_server_sg" {
+resource "aws_security_group" "web_server" {
   # count = data.aws_security_group.existing_sg.id != "" ? 0 : 1
 
   name        = "web-server-sg"
@@ -117,7 +117,7 @@ resource "aws_key_pair" "github_actions" {
 resource "aws_instance" "web_server" {
   ami             = "ami-02e2af61198e99faf"
   instance_type   = "t3.micro"
-  security_groups = [aws_security_group.web_server_sg.name]
+  security_groups = [aws_security_group.web_server.name]
   key_name        = aws_key_pair.github_actions.key_name
   tags = {
     Name = "web-server"
