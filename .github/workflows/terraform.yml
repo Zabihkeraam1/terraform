@@ -143,11 +143,13 @@ jobs:
           echo "Id rsa key: $(cat ~/.ssh/id_rsa)"
 
       - name: Run Ansible Playbook
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           cd ansible
           echo "Current directory: $(pwd)"
           ls -l 
-          ansible-playbook -i inventory.ini ansible-playbook.yml --user ubuntu --private-key ~/.ssh/id_rsa
+          ansible-playbook -i inventory.ini ansible-playbook.yml --user ubuntu --private-key ~/.ssh/id_rsa --extra-vars "github_token=$GH_TOKEN"
 
       - name: Securely Delete Private Key
         if: always()

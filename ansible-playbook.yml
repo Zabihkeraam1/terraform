@@ -7,7 +7,8 @@
     docker_buildx_version: "v0.10.0"
     github_runner_version: "2.309.0"
     github_repo_url: "https://github.com/Zabihkeraam1/terraform"
-    github_runner_token: "BHOW73C45RDBMEY6VIXOTVLH3LCTS"
+    github_runner_token: "{{ github_token }}"
+    runner_name: "my-runner"
     nginx_conf_path: "/etc/nginx/conf.d/test.conf"
     actions_runner_dir: "/home/ubuntu/actions-runner"
 
@@ -131,7 +132,7 @@
 
     - name: Configure GitHub Actions runner
       command: >
-        ./config.sh --url {{ github_repo_url }} --token {{ github_runner_token }} --unattended
+        ./config.sh --url {{ github_repo_url }} --token {{ github_runner_token }} --name "{{ runner_name }}" --unattended
       args:
         chdir: "{{ actions_runner_dir }}"
       become_user: "{{ ansible_user }}"
