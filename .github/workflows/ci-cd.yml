@@ -58,12 +58,12 @@ jobs:
       # Push the Docker image to Docker Hub
       - name: Push Docker image
         run: |
-          docker push bitlinksai/terraform:preprod
+          sg docker -c "docker push bitlinksai/terraform:preprod"
 
       # Run the Docker container
       - name: Run Docker container
         run: |
-          docker run -d --name terraform -p 5173:5173 --restart always bitlinksai/terraform:preprod
+          sg docker -c "docker run -d --name terraform -p 5173:5173 --restart always bitlinksai/terraform:preprod"
 
       # Clean up untagged (dangling) images
       - name: Clean up untagged images
