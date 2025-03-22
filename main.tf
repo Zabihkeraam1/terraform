@@ -19,12 +19,12 @@ data "aws_vpc" "default" {
 
 # Try to get the existing security group by name
 data "aws_security_group" "existing_sg" {
-  name = "web-server-sg"
+  name = "web-server"
 }
 
 # If the security group doesn't exist, create a new one
 resource "aws_security_group" "web_server_sg" {
-  count = data.aws_security_group.existing_sg.id != "" ? 0 : 1
+  # count = data.aws_security_group.existing_sg.id != "" ? 0 : 1
 
   name        = "web-server-sg"
   description = "Allow HTTP, HTTPS, and SSH traffic"
