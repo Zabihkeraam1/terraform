@@ -107,6 +107,7 @@ jobs:
 
       - name: Debug SSH KeyScan
         run: |
+          traceroute $(cat ./terraform-outputs/public_ip.txt)
           echo "Public IP: $(cat ./terraform-outputs/public_ip.txt)"
           ping -c 4 $(cat ./terraform-outputs/public_ip.txt)
           ssh-keyscan -H $(cat ./terraform-outputs/public_ip.txt)
