@@ -206,9 +206,6 @@
         groups: docker
         append: yes
 
-    - name: Restart the SSH session to apply group changes
-      shell: newgrp docker
-
     - name: Fix Docker socket permissions
       file:
         path: /var/run/docker.sock
