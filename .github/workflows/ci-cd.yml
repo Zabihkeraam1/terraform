@@ -1,4 +1,4 @@
-name: Docker Build and Deploy Terraform
+name: Docker Build and Deploy
 
 # on:
 #   push:

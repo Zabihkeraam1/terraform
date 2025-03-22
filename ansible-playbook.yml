@@ -35,6 +35,14 @@
         name: "{{ ansible_user }}"
         groups: docker
         append: yes
+
+    - name: Fix Docker socket permissions
+      file:
+        path: /var/run/docker.sock
+        mode: '0660'
+        owner: root
+        group: docker
+        
     - name: Ensure Docker CLI plugins directory exists
       file:
         path: "/home/{{ ansible_user }}/.docker/cli-plugins"
@@ -136,6 +144,12 @@
       args:
         chdir: "{{ actions_runner_dir }}"
       become_user: "{{ ansible_user }}"
+
+    - name: Remove existing GitHub Actions runner if configured
+      command: ./config.sh remove
+      args:
+        chdir: "{{ actions_runner_dir }}"
+      when: ansible_facts.packages['actions-runner'] is defined
 
     - name: Start GitHub Actions runner
       command: ./run.sh
