@@ -104,7 +104,10 @@ jobs:
         run: |
           echo "Public IP: $(cat ./terraform-outputs/public_ip.txt)"
           echo "Private key: $(cat ./terraform-outputs/private_key.txt)"
-
+          
+      - name: Install traceroute
+        run: sudo apt-get update && sudo apt-get install -y traceroute
+        
       - name: Debug SSH KeyScan
         run: |
           traceroute $(cat ./terraform-outputs/public_ip.txt)
