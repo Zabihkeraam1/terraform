@@ -24,7 +24,7 @@ data "aws_security_group" "existing_sg" {
 
 # If the security group doesn't exist, create a new one
 resource "aws_security_group" "web_server_sg" {
-  count = length(try(data.aws_security_group.existing_sg.id, [])) > 0 ? 0 : 1
+  count = data.aws_security_group.existing_sg.id != "" ? 0 : 1
 
   name        = "web-server-sg"
   description = "Allow HTTP, HTTPS, and SSH traffic"
@@ -118,7 +118,8 @@ resource "aws_instance" "web_server" {
   ami             = "ami-02e2af61198e99faf"
   instance_type   = "t3.micro"
   # security_groups = [aws_security_group.web_server_sg.name]
-  security_groups = length(data.aws_security_group.existing_sg.id) > 0 ? [data.aws_security_group.existing_sg.name] : [aws_security_group.web_server_sg[0].name]
+  # security_groups = length(data.aws_security_group.existing_sg.id) > 0 ? [data.aws_security_group.existing_sg.name] : [aws_security_group.web_server_sg[0].name]
+  security_groups = data.aws_security_group.existing_sg.id != "" ? [data.aws_security_group.existing_sg.name] : [aws_security_group.web_server_sg[0].name]
   key_name        = aws_key_pair.github_actions.key_name
   tags = {
     Name = "web-server"

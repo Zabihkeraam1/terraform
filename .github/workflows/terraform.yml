@@ -36,7 +36,7 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan
+        run: terraform plan -out=tfplan
         env:
           TF_VAR_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           TF_VAR_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -100,6 +100,25 @@ jobs:
           echo "Ansible installed"
           ansible --version
 
+      - name: Debug Files
+        run: |
+          echo "Public IP: $(cat ./terraform-outputs/public_ip.txt)"
+          echo "Private key: $(cat ./terraform-outputs/private_key.txt)"
+
+      - name: Debug SSH KeyScan
+        run: |
+          echo "Public IP: $(cat ./terraform-outputs/public_ip.txt)"
+          ping -c 4 $(cat ./terraform-outputs/public_ip.txt)
+          ssh-keyscan -H $(cat ./terraform-outputs/public_ip.txt)
+
+      - name: Debug Ansible Inventory File
+        run: |
+          echo "Contents of Ansible inventory.ini:"
+          cat ./ansible/inventory.ini
+      - name: Debug SSH Directory
+        run: |
+          echo "Contents of ~/.ssh:"
+          ls -l ~/.ssh
       - name: Prepare Ansible files
         run: |
           mkdir -p ansible
