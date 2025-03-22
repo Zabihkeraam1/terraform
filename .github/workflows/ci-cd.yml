@@ -1,6 +1,5 @@
 name: Docker Build and Deploy
 
-
 on:
   workflow_run:
     workflows: ["Terraform Plan, Apply, and Configure Instance"]
@@ -68,4 +67,4 @@ jobs:
       # Clean up untagged (dangling) images
       - name: Clean up untagged images
         run: |
-          docker image prune -a -f
+          sg docker -c "docker image prune -a -f"
