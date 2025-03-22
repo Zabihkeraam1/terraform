@@ -17,12 +17,7 @@ data "aws_vpc" "default" {
   default = true
 }
 
-# Try to get the existing security group by name
-data "aws_security_group" "existing_sg" {
-  name = "web-server"
-}
-
-# If the security group doesn't exist, create a new one
+# create security group
 resource "aws_security_group" "web_server" {
   # count = data.aws_security_group.existing_sg.id != "" ? 0 : 1
 
@@ -68,14 +63,6 @@ resource "aws_security_group" "web_server" {
   lifecycle {
     # Track changes and force update if necessary
     ignore_changes = [ingress, egress]
-  }
-}
-
-# Query instances using the security group
-data "aws_instances" "instances_using_sg" {
-  filter {
-    name   = "instance.group-id"
-    values = [data.aws_security_group.existing_sg.id]
   }
 }
 
