@@ -206,12 +206,20 @@
         groups: docker
         append: yes
 
+    - name: Restart the SSH session to apply group changes
+      shell: newgrp docker
+
     - name: Fix Docker socket permissions
       file:
         path: /var/run/docker.sock
         mode: '0660'
         owner: root
         group: docker
+
+    - name: Restart Docker to apply permission changes
+      service:
+        name: docker
+        state: restarted
 
     - name: Ensure Docker CLI plugins directory exists
       file:
@@ -253,7 +261,7 @@
       shell: curl -s http://checkip.amazonaws.com
       register: public_ip
       changed_when: false
-      ignore_errors: yes  # Continue if curl fails
+      ignore_errors: yes
 
     - name: Create Nginx configuration file
       copy:
@@ -324,7 +332,7 @@
       args:
         chdir: "{{ actions_runner_dir }}"
       become_user: "{{ ansible_user }}"
-      ignore_errors: yes  # Ignore errors if the runner is not configured
+      ignore_errors: yes
 
     - name: Configure GitHub Actions runner
       command: >
