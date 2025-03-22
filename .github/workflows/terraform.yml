@@ -105,28 +105,16 @@ jobs:
           echo "Public IP: $(cat ./terraform-outputs/public_ip.txt)"
           echo "Private key: $(cat ./terraform-outputs/private_key.txt)"
           
-      - name: Install traceroute
-        run: sudo apt-get update && sudo apt-get install -y traceroute
-
       - name: Check Connection
         run: |
           nc -zv $(cat ./terraform-outputs/public_ip.txt) 22
 
       - name: Debug SSH KeyScan
         run: |
-          traceroute $(cat ./terraform-outputs/public_ip.txt)
           echo "Public IP: $(cat ./terraform-outputs/public_ip.txt)"
           echo ssh-keyscan -H $(cat ./terraform-outputs/public_ip.txt)
           ssh-keyscan -H $(cat ./terraform-outputs/public_ip.txt)
 
-      - name: Debug Ansible Inventory File
-        run: |
-          echo "Contents of Ansible inventory.ini:"
-          cat ./ansible/inventory.ini
-      - name: Debug SSH Directory
-        run: |
-          echo "Contents of ~/.ssh:"
-          ls -l ~/.ssh
       - name: Prepare Ansible files
         run: |
           mkdir -p ansible
@@ -143,6 +131,10 @@ jobs:
         run: |
           echo "Contents of Ansible inventory.ini:"
           cat ./ansible/inventory.ini
+      - name: Debug SSH Directory
+        run: |
+          echo "Contents of ~/.ssh:"
+          ls -l ~/.ssh
 
       - name: Debug Files
         run: |
