@@ -21,7 +21,7 @@ data "aws_vpc" "default" {
 resource "aws_security_group" "web_server" {
   # count = data.aws_security_group.existing_sg.id != "" ? 0 : 1
 
-  name        = "web-server-sg"
+  name        = "web-server"
   description = "Allow HTTP, HTTPS, and SSH traffic"
   vpc_id      = data.aws_vpc.default.id
 
