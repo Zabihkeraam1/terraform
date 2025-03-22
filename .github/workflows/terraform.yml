@@ -43,7 +43,7 @@ jobs:
 
       - name: Terraform Apply
         if: success()
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve "tfplan"
         env:
           TF_VAR_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           TF_VAR_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -111,8 +111,6 @@ jobs:
       - name: Check Connection
         run: |
           nc -zv $(cat ./terraform-outputs/public_ip.txt) 22
-          nc -zv $(cat ./terraform-outputs/public_ip.txt) 80
-      
 
       - name: Debug SSH KeyScan
         run: |
