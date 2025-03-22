@@ -107,7 +107,12 @@ jobs:
           
       - name: Install traceroute
         run: sudo apt-get update && sudo apt-get install -y traceroute
-        
+
+      - name: Check SSH Connection
+        run: |
+          nc -zv $(cat ./terraform-outputs/public_ip.txt) 22
+      
+
       - name: Debug SSH KeyScan
         run: |
           traceroute $(cat ./terraform-outputs/public_ip.txt)
