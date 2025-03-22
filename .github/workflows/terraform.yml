@@ -149,7 +149,7 @@ jobs:
           cd ansible
           echo "Current directory: $(pwd)"
           ls -l 
-          ansible-playbook -i inventory.ini ansible-playbook.yml --user ubuntu --private-key ~/.ssh/id_rsa --extra-vars "github_token=$GH_TOKEN"
+          ansible-playbook -i inventory.ini ansible-playbook.yml --user ubuntu --private-key ~/.ssh/id_rsa --extra-vars "github_runner_token=${{ secrets.GH_TOKEN }}"
 
       - name: Securely Delete Private Key
         if: always()
