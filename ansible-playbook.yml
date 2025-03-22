@@ -323,6 +323,7 @@
       command: ./config.sh remove
       args:
         chdir: "{{ actions_runner_dir }}"
+      become_user: "{{ ansible_user }}"
       ignore_errors: yes  # Ignore errors if the runner is not configured
 
     - name: Configure GitHub Actions runner
