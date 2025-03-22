@@ -6,9 +6,11 @@ name: Docker Build and Deploy Terraform
 #       - master
 on:
   workflow_run:
-    workflows: ["Terraform Plan and Apply"]
+    workflows: ["Terraform Plan, Apply, and Configure Instance"]
     types:
       - completed
+    branches:
+      - master
 
 jobs:
   build-and-deploy:
