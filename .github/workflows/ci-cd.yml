@@ -1,6 +1,6 @@
 name: Docker Build and Deploy
 
-- master
+
 on:
   workflow_run:
     workflows: ["Terraform Plan, Apply, and Configure Instance"]
