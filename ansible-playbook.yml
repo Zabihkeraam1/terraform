@@ -221,12 +221,17 @@
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
 
+    - name: Check if Docker Buildx is already installed
+      stat:
+        path: "/home/{{ ansible_user }}/.docker/cli-plugins/docker-buildx"
+      register: docker_buildx_installed
+
     - name: Install Docker Buildx
       ansible.builtin.get_url:
         url: "https://github.com/docker/buildx/releases/download/{{ docker_buildx_version }}/buildx-{{ docker_buildx_version }}.linux-amd64"
         dest: "/home/{{ ansible_user }}/.docker/cli-plugins/docker-buildx"
         mode: '0755'
-      when: not ansible_facts.files['/home/{{ ansible_user }}/.docker/cli-plugins/docker-buildx']
+      when: not docker_buildx_installed.stat.exists
 
     - name: Restart Docker service
       service:
