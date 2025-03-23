@@ -121,51 +121,125 @@
         name: nginx
         state: reloaded
 
-    - name: Remove existing GitHub Actions runner directory
+    # - name: Remove existing GitHub Actions runner directory
+    #   file:
+    #     path: "{{ actions_runner_dir }}"
+    #     state: absent
+
+    # - name: Create GitHub Actions runner directory
+    #   file:
+    #     path: "{{ actions_runner_dir }}"
+    #     state: directory
+    #     owner: "{{ ansible_user }}"
+    #     group: "{{ ansible_user }}"
+
+    # - name: Download GitHub Actions runner
+    #   ansible.builtin.get_url:
+    #     url: "https://github.com/actions/runner/releases/download/v{{ github_runner_version }}/actions-runner-linux-x64-{{ github_runner_version }}.tar.gz"
+    #     dest: "{{ actions_runner_dir }}/actions-runner-linux-x64-{{ github_runner_version }}.tar.gz"
+
+    # - name: Extract GitHub Actions runner
+    #   unarchive:
+    #     src: "{{ actions_runner_dir }}/actions-runner-linux-x64-{{ github_runner_version }}.tar.gz"
+    #     dest: "{{ actions_runner_dir }}"
+    #     remote_src: yes
+    #     owner: "{{ ansible_user }}"
+    #     group: "{{ ansible_user }}"
+
+    # - name: Fix permissions for GitHub Actions runner
+    #   file:
+    #     path: "{{ actions_runner_dir }}"
+    #     owner: "{{ ansible_user }}"
+    #     group: "{{ ansible_user }}"
+    #     recurse: yes
+
+    # - name: Remove existing GitHub Actions runner configuration
+    #   command: ./config.sh remove
+    #   args:
+    #     chdir: "{{ actions_runner_dir }}"
+    #   become_user: "{{ ansible_user }}"
+    #   ignore_errors: yes
+
+    # - name: Configure GitHub Actions runner
+    #   command: >
+    #     ./config.sh --url {{ github_repo_url }} --token {{ github_runner_token }} --name "{{ runner_name }}" --unattended
+    #   args:
+    #     chdir: "{{ actions_runner_dir }}"
+    #   become_user: "{{ ansible_user }}"
+
+    # - name: Start GitHub Actions runner
+    #   command: ./run.sh
+    #   args:
+    #     chdir: "{{ actions_runner_dir }}"
+    #   become_user: "{{ ansible_user }}"
+    #   async: 600
+    #   poll: 0
+
+    # - name: Debugging - Print success message
+    #   debug:
+    #     msg: "GitHub Actions runner setup completed successfully!"
+
+    - name: Check if GitHub Actions runner is already configured
+      stat:
+        path: "{{ actions_runner_dir }}/.runner"
+      register: runner_config_exists
+
+    - name: Debugging - Print runner configuration status
+      debug:
+        msg: "Runner already configured: {{ runner_config_exists.stat.exists }}"
+
+    - name: Remove existing GitHub Actions runner directory (if not configured)
       file:
         path: "{{ actions_runner_dir }}"
         state: absent
+      when: not runner_config_exists.stat.exists
 
-    - name: Create GitHub Actions runner directory
+    - name: Create GitHub Actions runner directory (if not configured)
       file:
         path: "{{ actions_runner_dir }}"
         state: directory
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
+      when: not runner_config_exists.stat.exists
 
-    - name: Download GitHub Actions runner
+    - name: Download GitHub Actions runner (if not configured)
       ansible.builtin.get_url:
         url: "https://github.com/actions/runner/releases/download/v{{ github_runner_version }}/actions-runner-linux-x64-{{ github_runner_version }}.tar.gz"
         dest: "{{ actions_runner_dir }}/actions-runner-linux-x64-{{ github_runner_version }}.tar.gz"
+      when: not runner_config_exists.stat.exists
 
-    - name: Extract GitHub Actions runner
+    - name: Extract GitHub Actions runner (if not configured)
       unarchive:
         src: "{{ actions_runner_dir }}/actions-runner-linux-x64-{{ github_runner_version }}.tar.gz"
         dest: "{{ actions_runner_dir }}"
         remote_src: yes
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
+      when: not runner_config_exists.stat.exists
 
-    - name: Fix permissions for GitHub Actions runner
+    - name: Fix permissions for GitHub Actions runner (if not configured)
       file:
         path: "{{ actions_runner_dir }}"
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         recurse: yes
+      when: not runner_config_exists.stat.exists
 
-    - name: Remove existing GitHub Actions runner configuration
+    - name: Remove existing GitHub Actions runner configuration (if not configured)
       command: ./config.sh remove
       args:
         chdir: "{{ actions_runner_dir }}"
       become_user: "{{ ansible_user }}"
       ignore_errors: yes
+      when: not runner_config_exists.stat.exists
 
-    - name: Configure GitHub Actions runner
+    - name: Configure GitHub Actions runner (if not configured)
       command: >
         ./config.sh --url {{ github_repo_url }} --token {{ github_runner_token }} --name "{{ runner_name }}" --unattended
       args:
         chdir: "{{ actions_runner_dir }}"
       become_user: "{{ ansible_user }}"
+      when: not runner_config_exists.stat.exists
 
     - name: Start GitHub Actions runner
       command: ./run.sh
